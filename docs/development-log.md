@@ -88,3 +88,23 @@
 - Executed `.\build\NarrativeGame.exe --verify-phase2`:
   - Verified loading `assets/sprites/player_elijah_sheet.png` (`128x96`, `id=7`).
   - Verified walk cycle UV updates, camera follow, and sliding collision resolution against `StudentDesk_FrontLeft` with `GL Errors = 0`.
+
+
+---
+
+## Phase 3 — First Playable Scene (2026-11-05)
+
+### Completed Subsystems
+1. **NPC Character System (`src/game/characters/NPCCharacter.h`, `NPCCharacter.cpp`):**
+   - Implements animated 2.5D NPCs (`Maya`) in 3D space with automatic player-facing orientation when nearby, grounded contact shadows, and AABB collider registration.
+2. **Proximity Interaction System (`src/game/interactions/InteractionSystem.h`, `InteractionSystem.cpp`):**
+   - Tracks 3D interactable objects and NPCs (`InteractionManager`), detects the closest target within trigger radius, renders a rotating 3D amber diamond marker (`GL_TRIANGLES`) and stippled ground ring (`GL_LINE_LOOP` + `glLineStipple`, Module 2), and displays a 2D interaction prompt banner (`[E] Talk to Maya`, `[E] Inspect Sketchbook & Notes`, etc.).
+3. **Working Dialogue System (`src/game/dialogue/DialogueSystem.h`, `DialogueSystem.cpp`):**
+   - Implements multi-line dialogue sequences with typewriter character reveal, speaker nameplate, line counter, and progression via `[E]`, `[Space]`, `[Enter]`, or Left Mouse Click (`GLUT_LEFT_BUTTON` / `GLUT_DOWN`, Module 3).
+4. **Playable Classroom Scene (`src/game/scenes/ClassroomScene.h`, `ClassroomScene.cpp`):**
+   - Encapsulates Room 304 (Late Afternoon, Nov 14) with textured walls, wood floor, chalkboard, sliding hallway door, 6 student desks + chairs, teacher's desk + chair, sketchbook prop, GLUT teapot & globe props, glowing ceiling lamp, sunset windows, dust motes, controllable player (`Elijah`), NPC (`Maya`), and 5 interactive targets.
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase3`:
+  - Verified loading all 8 textures/sprite-sheets, approaching an interactable target, triggering an interaction (`InteractionsTriggered=1`), and completing a full multi-line dialogue sequence (`DialoguesCompleted=1`) with `GL Errors = 0`.
