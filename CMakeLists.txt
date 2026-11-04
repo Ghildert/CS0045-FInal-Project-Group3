@@ -41,6 +41,7 @@ set(GAME_SOURCES
     src/game/narrative/PhoneSystem.cpp
     src/game/minigames/RhythmMinigame.cpp
     src/game/scenes/ClassroomScene.cpp
+    src/debug/OpenGLDemoMode.cpp
 )
 
 add_executable(NarrativeGame

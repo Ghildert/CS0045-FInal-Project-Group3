@@ -173,3 +173,30 @@
 - Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
 - Executed `.\build\NarrativeGame.exe --verify-phase6`:
   - Verified full 16-note rhythm chart execution (`MinigameNotesHit=16/16`, `MaxCombo=16`, `Score=4440`), completion flag persistence (`Flag[completed_rhythm_minigame]=1`), and post-minigame story dialogue completion (`Flag[story_act1_complete]=1`) with `GL Errors = 0`.
+
+
+---
+
+## Phase 7 — OpenGL Demonstration Mode (2026-11-05)
+
+### Completed Subsystems
+1. **Interactive 8-Station OpenGL Coursework Showcase (`src/debug/OpenGLDemoMode.h`, `OpenGLDemoMode.cpp`):**
+   - Toggled anytime via `[F2]` (or from the Main Menu) and navigated with `[1..8]` or `[Left / Right Arrow]` keys.
+   - Displays on screen:
+     1. Which CS0045 Module (1–8) is currently active.
+     2. The exact OpenGL & FreeGLUT API functions demonstrated at that station.
+     3. Where the exact same concept is used in the narrative game (`src/...` file and function names).
+   - **Stations 1–8 Coverage:**
+     - **Station 1 (Module 1):** Rendering pipeline stage diagram + immediate-mode `GL_POLYGON` (`glBegin`, `glVertex2f`, `glEnd`, `glClear`, `glFlush`).
+     - **Station 2 (Module 2):** All 10 primitive types (`GL_POINTS`..`GL_POLYGON`), all 3 `glLineStipple` patterns (`0x00FF`, `0x0C0F`, `0xAAAA`), rain streaks, puddle ripples, and per-vertex colors (`glColor3ub`).
+     - **Station 3 (Module 3):** Live GLUT keyboard/mouse/motion/entry callback inspector + 3D `glutStrokeString` and 2D `glutBitmapString` font comparison.
+     - **Station 4 (Module 4):** Client-side vertex arrays (`glEnableClientState`, `glVertexPointer`, `glColorPointer`, `glNormalPointer`, `glTexCoordPointer`, `glDrawElements`).
+     - **Station 5 (Module 5):** Static VBO (`GL_STATIC_DRAW`) vs. Dynamic Mapped VBO (`GL_DYNAMIC_DRAW`, `glGenBuffers`, `glIsBuffer`, `glBindBuffer`, `glBufferData`, `glMapBuffer`).
+     - **Station 6 (Module 6):** Live homogeneous coordinate math (`Vec4` $w=1$ vs. $w=0$, `Mat4` $4 \times 4$ matrix-vector product), `BUFFER_OFFSET(i)`, `glArrayElement`, and mapped-VBO vertex translation.
+     - **Station 7 (Module 7):** 3-level nested matrix stack planetary hierarchy (`glPushMatrix`, `glRotatef`, `glTranslatef`, `glScalef`, `glPopMatrix`) + live `gluPerspective` / `glFrustum` / `glOrtho` projection switching (`[P]`).
+     - **Station 8 (Module 8):** Phong lighting + spotlight (`GL_LIGHT0`, `GL_LIGHT1`), materials (`glMaterialfv`), GLUT 3D objects (`glutSolidTeapot`/`glutWireTeapot`, `glutSolidTorus`), and mipmapped `stb_image` textures.
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase7`:
+  - Stepped through and rendered all 8 Module stations (`DemoModulesVisitedMask=0xff (All8=YES)`) with `GL Errors = 0`.
