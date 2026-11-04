@@ -84,3 +84,24 @@ target_link_libraries(UnitTests PRIVATE
 
 enable_testing()
 add_test(NAME EchoesUnitTests COMMAND UnitTests)
+
+# Copy MSYS2 UCRT64 runtime DLLs + assets/data into build/ so NarrativeGame.exe can also be double-clicked in Explorer
+set(MSYS2_UCRT64_BIN "C:/msys64/ucrt64/bin")
+set(RUNTIME_DLLS
+    "${MSYS2_UCRT64_BIN}/libfreeglut.dll"
+    "${MSYS2_UCRT64_BIN}/glew32.dll"
+    "${MSYS2_UCRT64_BIN}/libgcc_s_seh-1.dll"
+    "${MSYS2_UCRT64_BIN}/libstdc++-6.dll"
+    "${MSYS2_UCRT64_BIN}/libwinpthread-1.dll"
+)
+foreach(DLL_FILE IN LISTS RUNTIME_DLLS)
+    if(EXISTS "${DLL_FILE}")
+        add_custom_command(TARGET NarrativeGame POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${DLL_FILE}" "$<TARGET_FILE_DIR:NarrativeGame>"
+        )
+    endif()
+endforeach()
+add_custom_command(TARGET NarrativeGame POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:NarrativeGame>/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/data" "$<TARGET_FILE_DIR:NarrativeGame>/data"
+)
