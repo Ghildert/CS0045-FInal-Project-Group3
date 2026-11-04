@@ -2,11 +2,11 @@
  * CS0045 Computer Graphics and Visual Computing
  * "Echoes of November" - 2.5D Narrative Adventure Game (C++17 & OpenGL Compatibility Profile)
  *
- * PHASE 5 DELIVERABLE: Additional Locations (Multi-Scene Narrative Sequence)
- * - Location 1: Room 304 Classroom (Late Afternoon)
- * - Location 2: 3rd-Floor School Hallway (Terrazzo tiles, lockers, noticeboard, NPC Sam)
- * - Location 3: Rainy Street / 24/7 Sundown Mart Exterior (Wet asphalt, neon storefront,
- *               bus stop bench, streetlight, Module 2 Rain Streaks & Puddle Ripples, NPC Maya)
+ * PHASE 6 DELIVERABLE: Interactive Rhythm Minigame ("Acoustic Rhythm Session - Echoes in the Rain")
+ * - Connected to the story via Sam's Acoustic Guitar Case on the Rainy Street bench (or [G] shortcut)
+ * - Uses FreeGLUT keyboard & timer callbacks, Module 2 primitives & line stippling, per-vertex colors,
+ *   and Module 6/7 matrix transformations (glPushMatrix, glTranslatef, glRotatef, glScalef)
+ * - Returns cleanly to the 2.5D story and triggers Maya's post-song celebration dialogue
  */
 
 #ifndef GLEW_STATIC
@@ -32,7 +32,7 @@ camera::Camera3D             g_camera;
 game::scenes::ClassroomScene g_worldScene;
 
 bool g_autoVerifyExit   = false;
-bool g_verifyPhase5Mode = false;
+bool g_verifyPhase6Mode = false;
 int  g_framesRendered   = 0;
 bool g_fullscreen       = false;
 
@@ -48,16 +48,18 @@ void displayCallback() {
     core::Logger::checkGLError("displayCallback");
     ++g_framesRendered;
 
-    if (g_autoVerifyExit && g_framesRendered >= 32) {
+    if (g_autoVerifyExit && g_framesRendered >= 34) {
         bool sceneOk = g_worldScene.isValid();
         const auto& st = g_worldScene.getStoryState();
+        const auto& mg = g_worldScene.getRhythmMinigame();
 
-        std::cout << "[Phase 5 Self-Test] Rendered " << g_framesRendered
-                  << " frames. AllAssets=" << (sceneOk ? "OK(15)" : "FAIL")
-                  << ", LocationsVisitedMask=0x" << std::hex << g_worldScene.getLocationsVisitedCount() << std::dec
-                  << " (Current=" << g_worldScene.getCurrentLocationIdString() << ")"
-                  << ", Flag[talked_to_sam]=" << st.getFlag("talked_to_sam")
-                  << ", Flag[ready_for_minigame]=" << st.getFlag("ready_for_minigame")
+        std::cout << "[Phase 6 Self-Test] Rendered " << g_framesRendered
+                  << " frames. MinigameNotesHit=" << mg.getNotesHit() << "/" << mg.getTotalNotes()
+                  << ", MaxCombo=" << mg.getMaxCombo()
+                  << ", Score=" << mg.getScore()
+                  << ", Flag[completed_rhythm_minigame]=" << st.getFlag("completed_rhythm_minigame")
+                  << ", Flag[story_act1_complete]=" << st.getFlag("story_act1_complete")
+                  << ", Scene=" << (sceneOk ? "OK" : "FAIL")
                   << ", GL Errors=" << core::Logger::getErrorCount() << std::endl;
         glutLeaveMainLoop();
     }
@@ -116,8 +118,8 @@ void timerCallback(int value) {
     (void)value;
     constexpr float dt = 0.016f;
 
-    if (g_verifyPhase5Mode) {
-        g_worldScene.runPhase5VerificationStep(dt, g_camera);
+    if (g_verifyPhase6Mode) {
+        g_worldScene.runPhase6VerificationStep(dt, g_camera);
     } else {
         g_worldScene.update(dt, g_camera);
     }
@@ -136,9 +138,10 @@ int main(int argc, char** argv) {
             std::strcmp(argv[i], "--verify-phase2") == 0 ||
             std::strcmp(argv[i], "--verify-phase3") == 0 ||
             std::strcmp(argv[i], "--verify-phase4") == 0 ||
-            std::strcmp(argv[i], "--verify-phase5") == 0) {
+            std::strcmp(argv[i], "--verify-phase5") == 0 ||
+            std::strcmp(argv[i], "--verify-phase6") == 0) {
             g_autoVerifyExit   = true;
-            g_verifyPhase5Mode = true;
+            g_verifyPhase6Mode = true;
         }
     }
 
@@ -146,7 +149,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(1280, 720);
     glutInitWindowPosition(100, 60);
-    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 5: Multi-Location Story]");
+    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 6: Acoustic Rhythm Minigame]");
 
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {

@@ -39,6 +39,7 @@ set(GAME_SOURCES
     src/game/dialogue/DialogueSystem.cpp
     src/game/narrative/StoryState.cpp
     src/game/narrative/PhoneSystem.cpp
+    src/game/minigames/RhythmMinigame.cpp
     src/game/scenes/ClassroomScene.cpp
 )
 

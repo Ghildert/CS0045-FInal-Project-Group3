@@ -13,6 +13,7 @@
 #include "game/dialogue/DialogueSystem.h"
 #include "game/narrative/StoryState.h"
 #include "game/narrative/PhoneSystem.h"
+#include "game/minigames/RhythmMinigame.h"
 #include <string>
 
 namespace game {
@@ -45,8 +46,9 @@ public:
     void onSpecialKeyPress(int key);
     void onMouseClick(int button, int state);
 
-    // Automated Phase 5 multi-location verification helper
+    // Automated Phase 5/6 verification helper
     void runPhase5VerificationStep(float dt, engine::camera::Camera3D& camera);
+    void runPhase6VerificationStep(float dt, engine::camera::Camera3D& camera);
 
     bool isValid() const;
     const player::PlayerController& getPlayer() const { return m_player; }
@@ -56,6 +58,7 @@ public:
     const dialogue::DialogueSystem& getDialogue() const { return m_dialogue; }
     const narrative::StoryState& getStoryState() const { return m_storyState; }
     const narrative::PhoneSystem& getPhoneSystem() const { return m_phoneSystem; }
+    const minigames::RhythmMinigame& getRhythmMinigame() const { return m_rhythmMinigame; }
     engine::renderer::LightingSystem& getLighting() { return m_lighting; }
     int getLocationsVisitedCount() const { return m_locationsVisitedMask; }
 
@@ -109,6 +112,7 @@ private:
     dialogue::DialogueSystem         m_dialogue;
     narrative::StoryState            m_storyState;
     narrative::PhoneSystem           m_phoneSystem;
+    minigames::RhythmMinigame        m_rhythmMinigame;
 
     float m_timeSeconds;
     bool  m_showDebugOverlay;

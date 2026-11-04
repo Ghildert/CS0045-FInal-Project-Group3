@@ -36,11 +36,11 @@ void DialogueSystem::initPortraitsAndData(const std::string& filePath) {
 }
 
 void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
-    // Check if existing file already has Phase 5 hallway/street nodes
+    // Check if existing file already has Phase 6 post_minigame_celebration node
     if (std::filesystem::exists(filePath)) {
         std::ifstream chk(filePath);
         std::string content((std::istreambuf_iterator<char>(chk)), std::istreambuf_iterator<char>());
-        if (content.find("sam_hallway_talk") != std::string::npos) {
+        if (content.find("post_minigame_celebration") != std::string::npos) {
             return;
         }
     }
@@ -137,7 +137,12 @@ void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
     out << "LINE|Elijah|24/7 Sundown Mart. Warm fluorescent light glows through the rain-streaked glass window.\n\n";
 
     out << "NODE|inspect_bus_sign|checked_bus_sign|1\n";
-    out << "LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.\n";
+    out << "LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.\n\n";
+
+    out << "NODE|post_minigame_celebration|story_act1_complete|1\n";
+    out << "LINE|Maya|That sounded incredible against the rain, Elijah! The bridge arpeggio finally clicked.\n";
+    out << "LINE|Elijah|Playing it under the Sundown Mart neon felt weirdly familiar... in the best way.\n";
+    out << "LINE|Maya|Come on, the rain is easing up. We're ready for Friday's Acoustic Night!\n";
 
     out.close();
 }

@@ -236,7 +236,9 @@ void ClassroomScene::update(float dt, engine::camera::Camera3D& camera) {
     m_storyState.update(dt);
     m_transition.update(dt);
 
-    if (m_dialogue.isActive()) {
+    if (m_rhythmMinigame.isActive()) {
+        m_rhythmMinigame.update(dt, m_storyState);
+    } else if (m_dialogue.isActive()) {
         m_dialogue.update(dt);
     } else if (!m_phoneSystem.isOpen() && !m_transition.isActive() && !camera.isFreeCameraEnabled()) {
         m_player.update(dt, m_collisionWorld, true);
@@ -305,6 +307,37 @@ void ClassroomScene::runPhase5VerificationStep(float dt, engine::camera::Camera3
 
     m_npcMaya.update(dt, m_player.getX(), m_player.getZ());
     m_npcSam.update(dt, m_player.getX(), m_player.getZ());
+    camera.setNarrativeTarget(m_player.getX() * 0.58f, 1.20f, m_player.getZ() * 0.45f, dt);
+}
+
+void ClassroomScene::runPhase6VerificationStep(float dt, engine::camera::Camera3D& camera) {
+    m_timeSeconds += dt;
+    m_storyState.update(dt);
+    m_transition.update(dt);
+
+    if (m_verifyStep == 0) {
+        // Switch to RainyStreet and start the Acoustic Guitar Rhythm Minigame
+        switchLocation(LocationId::RainyStreet, 2.0f, 0.2f, false);
+        m_rhythmMinigame.startSession();
+        m_verifyStep = 1;
+    } else if (m_verifyStep == 1) {
+        // Auto-play the 16-note acoustic rhythm chart at accelerated step
+        if (!m_rhythmMinigame.isFinished()) {
+            for (int k = 0; k < 6 && !m_rhythmMinigame.isFinished(); ++k) {
+                m_rhythmMinigame.autoPlayStep(0.08f, m_storyState);
+            }
+        } else {
+            m_rhythmMinigame.stopSession();
+            m_dialogue.startDialogue("post_minigame_celebration");
+            m_verifyStep = 2;
+        }
+    } else if (m_verifyStep == 2) {
+        if (m_dialogue.isActive()) {
+            m_dialogue.advanceOrCompleteLine(&m_storyState);
+        }
+    }
+
+    m_npcMaya.update(dt, m_player.getX(), m_player.getZ());
     camera.setNarrativeTarget(m_player.getX() * 0.58f, 1.20f, m_player.getZ() * 0.45f, dt);
 }
 
@@ -699,7 +732,9 @@ void ClassroomScene::render2D(const engine::camera::Camera3D& camera) {
 
     m_phoneSystem.render2D(w, h, m_storyState);
 
-    if (m_dialogue.isActive()) {
+    if (m_rhythmMinigame.isActive()) {
+        m_rhythmMinigame.render2D(w, h);
+    } else if (m_dialogue.isActive()) {
         m_dialogue.render2D(w, h);
     } else if (!m_phoneSystem.isOpen()) {
         m_interactions.render2DPrompt(w, h);
@@ -711,6 +746,22 @@ void ClassroomScene::render2D(const engine::camera::Camera3D& camera) {
 
 void ClassroomScene::onKeyPress(unsigned char key) {
     if (m_transition.isActive()) {
+        return;
+    }
+
+    // If Rhythm Minigame is active, route input directly to minigame
+    if (m_rhythmMinigame.isActive()) {
+        bool wasFinished = m_rhythmMinigame.isFinished();
+        m_rhythmMinigame.onKeyPress(key, m_storyState);
+        if (wasFinished && !m_rhythmMinigame.isActive()) {
+            m_dialogue.startDialogue("post_minigame_celebration");
+        }
+        return;
+    }
+
+    // Shortcut [G] launches the Acoustic Rhythm Minigame anytime when not in dialogue
+    if ((key == 'g' || key == 'G') && !m_dialogue.isActive() && !m_phoneSystem.isOpen()) {
+        m_rhythmMinigame.startSession();
         return;
     }
 
@@ -770,6 +821,8 @@ void ClassroomScene::onKeyPress(unsigned char key) {
                 }
             } else if (activeObj->id == "gate_to_hallway") {
                 switchLocation(LocationId::Hallway, 3.4f, -0.8f, true);
+            } else if (activeObj->id == "guitar_bench") {
+                m_rhythmMinigame.startSession();
             } else if (!activeObj->dialogueNodeId.empty()) {
                 m_dialogue.startDialogue(activeObj->dialogueNodeId);
             }

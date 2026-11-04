@@ -155,3 +155,21 @@
 - Executed `.\build\NarrativeGame.exe --verify-phase5`:
   - Verified loading all 16 textures, sprite sheets, and portraits.
   - Verified narrative sequence across all 3 locations (`LocationsVisitedMask=0x7`: `Classroom` -> `Hallway` -> `RainyStreet`), completing Sam's and Maya's branching dialogues (`Flag[talked_to_sam]=1`, `Flag[ready_for_minigame]=1`) with `GL Errors = 0`.
+
+
+---
+
+## Phase 6 — Minigame (2026-11-05)
+
+### Completed Subsystems
+1. **Acoustic Guitar Rhythm Minigame (`src/game/minigames/RhythmMinigame.h`, `RhythmMinigame.cpp`):**
+   - Connected directly to the narrative when inspecting **Sam's Acoustic Guitar Case** on the bus-stop bench outside 24/7 Sundown Mart (`LocationId::RainyStreet`), or triggered anytime via `[G]`.
+   - Uses FreeGLUT keyboard (`[D/F/J/K]` or `[1/2/3/4]`) and timer callbacks (`update(dt)`).
+   - Renders fretboard string lanes, stippled fret wires and acoustic soundhole rosette (`GL_LINES`, `GL_LINE_LOOP`, `glLineStipple` with `0x00FF` and `0x0C0F`), target receptor glow bursts (`GL_TRIANGLE_FAN`), scrolling diamond note gems (`GL_POLYGON` with smooth vertex color interpolation), and hit burst particle stars (`GL_POINTS` + `glPointSize`).
+   - Uses OpenGL matrix stack transformations (`glPushMatrix`, `glTranslatef`, `glRotatef`, `glScalef`, `glPopMatrix`) to animate scrolling, rotating, and pulsing note gems.
+   - Returns cleanly to the 2.5D story on completion, setting `completed_rhythm_minigame = 1` and `rhythm_high_score` in `StoryState` and launching Maya's post-song celebration dialogue (`post_minigame_celebration`).
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase6`:
+  - Verified full 16-note rhythm chart execution (`MinigameNotesHit=16/16`, `MaxCombo=16`, `Score=4440`), completion flag persistence (`Flag[completed_rhythm_minigame]=1`), and post-minigame story dialogue completion (`Flag[story_act1_complete]=1`) with `GL Errors = 0`.

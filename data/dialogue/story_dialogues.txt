@@ -81,3 +81,8 @@ LINE|Elijah|24/7 Sundown Mart. Warm fluorescent light glows through the rain-str
 
 NODE|inspect_bus_sign|checked_bus_sign|1
 LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.
+
+NODE|post_minigame_celebration|story_act1_complete|1
+LINE|Maya|That sounded incredible against the rain, Elijah! The bridge arpeggio finally clicked.
+LINE|Elijah|Playing it under the Sundown Mart neon felt weirdly familiar... in the best way.
+LINE|Maya|Come on, the rain is easing up. We're ready for Friday's Acoustic Night!
