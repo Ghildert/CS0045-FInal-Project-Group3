@@ -20,6 +20,12 @@
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
 #endif
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/freeglut_ext.h>
@@ -92,7 +98,36 @@ void handleMenuAction(ui::MenuAction action) {
     }
 }
 
+constexpr const char* kWindowTitle = "Echoes of November - 2.5D Narrative Adventure (CS0045 OpenGL)";
+
+void ensureWindowVisibleAndFocused() {
+    if (g_autoVerifyExit) {
+        return;
+    }
+    glutShowWindow();
+    glutPopWindow();
+#ifdef _WIN32
+    HWND hwnd = FindWindowA("FREEGLUT", kWindowTitle);
+    if (!hwnd) {
+        hwnd = FindWindowA(nullptr, kWindowTitle);
+    }
+    if (!hwnd) {
+        hwnd = GetActiveWindow();
+    }
+    if (hwnd) {
+        ShowWindow(hwnd, SW_RESTORE);
+        ShowWindow(hwnd, SW_SHOWNORMAL);
+        UpdateWindow(hwnd);
+        SetForegroundWindow(hwnd);
+        BringWindowToTop(hwnd);
+    }
+#endif
+}
+
 void displayCallback() {
+    if (g_framesRendered <= 2) {
+        ensureWindowVisibleAndFocused();
+    }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (g_demoMode.isActive()) {
@@ -259,7 +294,8 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(1280, 720);
     glutInitWindowPosition(100, 60);
-    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure (CS0045 OpenGL)");
+    glutCreateWindow(kWindowTitle);
+    ensureWindowVisibleAndFocused();
 
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {
@@ -295,6 +331,8 @@ int main(int argc, char** argv) {
     glutPassiveMotionFunc(input::InputManager::onMousePassiveMotion);
     glutEntryFunc(input::InputManager::onMouseEntry);
     glutTimerFunc(16, timerCallback, 0);
+
+    std::cout << "[INFO] OpenGL window active! Use UP/DOWN + ENTER on the Main Menu (or press F2 for Coursework Demo Mode)." << std::endl;
 
     glutMainLoop();
 
