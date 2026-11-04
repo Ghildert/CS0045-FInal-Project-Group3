@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EchoesOfNovember VERSION 0.5.0 LANGUAGES CXX)
+project(EchoesOfNovember VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,6 +21,7 @@ set(ENGINE_SOURCES
     src/engine/core/Math4x4.cpp
     src/engine/input/InputManager.cpp
     src/engine/assets/Texture2D.cpp
+    src/engine/audio/AudioSystem.cpp
     src/engine/animation/SpriteAnimator.cpp
     src/engine/renderer/PrimitiveRenderer.cpp
     src/engine/renderer/MeshVBO.cpp
@@ -30,6 +31,7 @@ set(ENGINE_SOURCES
     src/engine/camera/Camera3D.cpp
     src/engine/scene/SceneTransition.cpp
     src/engine/ui/TextRenderer.cpp
+    src/engine/ui/MenuSystem.cpp
 )
 
 set(GAME_SOURCES
@@ -50,8 +52,15 @@ add_executable(NarrativeGame
     ${GAME_SOURCES}
 )
 
+add_executable(UnitTests
+    tests/unit_tests.cpp
+    ${ENGINE_SOURCES}
+    ${GAME_SOURCES}
+)
+
 if(MINGW)
     target_compile_options(NarrativeGame PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(UnitTests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # Link OpenGL compatibility libraries, GLEW, FreeGLUT, GLU, GDI32, and WinMM (audio/timers)
@@ -63,3 +72,15 @@ target_link_libraries(NarrativeGame PRIVATE
     gdi32
     winmm
 )
+
+target_link_libraries(UnitTests PRIVATE
+    glew32
+    freeglut
+    glu32
+    opengl32
+    gdi32
+    winmm
+)
+
+enable_testing()
+add_test(NAME EchoesUnitTests COMMAND UnitTests)

@@ -1,6 +1,7 @@
 #include "game/minigames/RhythmMinigame.h"
 #include "engine/renderer/PrimitiveRenderer.h"
 #include "engine/ui/TextRenderer.h"
+#include "engine/audio/AudioSystem.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <cmath>
@@ -110,6 +111,7 @@ void RhythmMinigame::triggerLaneInput(int lane, narrative::StoryState& storyStat
             m_lastJudgment  = "GREAT! (+100)";
             m_bursts.push_back(HitBurstEffect{ lane, 0.32f, 0.38f, 0.95f, 0.72f });
         }
+        engine::audio::AudioSystem::play(engine::audio::SoundEvent::GuitarChord);
         m_judgmentTimer = 0.85f;
     }
 }

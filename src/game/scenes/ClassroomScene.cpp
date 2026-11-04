@@ -115,6 +115,37 @@ std::string ClassroomScene::getCurrentLocationIdString() const {
     return "classroom";
 }
 
+void ClassroomScene::startNewGame() {
+    m_storyState.resetNewGame();
+    m_phoneSystem.loadFromExternalData("data/dialogue/phone_messages.txt");
+    switchLocation(LocationId::Classroom, -0.35f, 1.15f, true);
+}
+
+void ClassroomScene::quickSave() {
+    m_storyState.saveToFile(
+        "data/saves/save_slot_1.sav",
+        getCurrentLocationIdString(),
+        m_player.getX(),
+        m_player.getZ());
+}
+
+void ClassroomScene::quickLoad() {
+    std::string sceneId;
+    float px = m_player.getX();
+    float pz = m_player.getZ();
+    if (m_storyState.loadFromFile("data/saves/save_slot_1.sav", sceneId, px, pz)) {
+        LocationId target = LocationId::Classroom;
+        if (sceneId == "hallway")      target = LocationId::Hallway;
+        if (sceneId == "rainy_street") target = LocationId::RainyStreet;
+        switchLocation(target, px, pz, true);
+    }
+}
+
+void ClassroomScene::launchMinigameDirectly() {
+    switchLocation(LocationId::RainyStreet, 2.0f, 0.2f, false);
+    m_rhythmMinigame.startSession();
+}
+
 std::string ClassroomScene::getCurrentLocationTitle() const {
     switch (m_currentLocation) {
         case LocationId::Classroom:   return "ROOM 304 - NOVEMBER 14 (LATE AFTERNOON)";
@@ -323,7 +354,7 @@ void ClassroomScene::runPhase6VerificationStep(float dt, engine::camera::Camera3
     } else if (m_verifyStep == 1) {
         // Auto-play the 16-note acoustic rhythm chart at accelerated step
         if (!m_rhythmMinigame.isFinished()) {
-            for (int k = 0; k < 6 && !m_rhythmMinigame.isFinished(); ++k) {
+            for (int k = 0; k < 14 && !m_rhythmMinigame.isFinished(); ++k) {
                 m_rhythmMinigame.autoPlayStep(0.08f, m_storyState);
             }
         } else {

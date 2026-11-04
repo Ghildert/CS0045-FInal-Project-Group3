@@ -33,6 +33,11 @@ public:
     void init();
     void destroy();
 
+    void startNewGame();
+    void quickSave();
+    void quickLoad();
+    void launchMinigameDirectly();
+
     void switchLocation(LocationId targetLocation, float spawnX, float spawnZ, bool withTransition = true);
     LocationId getCurrentLocation() const { return m_currentLocation; }
     std::string getCurrentLocationIdString() const;

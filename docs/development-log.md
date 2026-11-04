@@ -200,3 +200,31 @@
 - Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
 - Executed `.\build\NarrativeGame.exe --verify-phase7`:
   - Stepped through and rendered all 8 Module stations (`DemoModulesVisitedMask=0xff (All8=YES)`) with `GL Errors = 0`.
+
+
+---
+
+## Phase 8 — Polish, Menus, Audio, Automated Unit Tests, and Final Documentation (2026-11-05)
+
+### Completed Subsystems
+1. **Main Menu & Pause Menu System (`src/engine/ui/MenuSystem.h`, `MenuSystem.cpp`):**
+   - Implements a translucent title-screen **Main Menu** over the live 3D classroom scene (`Start / Continue Story`, `Load Saved Game`, `OpenGL Coursework Demo Mode [F2]`, `Acoustic Guitar Rhythm Minigame`, `Quit Game`).
+   - Implements an in-game **Pause Menu** (`[ESC]`) (`Resume Game`, `Quick Save [F5]`, `Quick Load [F9]`, `OpenGL Demo Mode [F2]`, `Return to Main Menu`, `Quit to Desktop`).
+   - Uses `glutStrokeString` (`GLUT_STROKE_ROMAN`), `glutBitmapString`, `glLineStipple` (`0x00FF`), and translucent `GL_QUADS`.
+2. **Synthesized PCM WAV Audio System (`src/engine/audio/AudioSystem.h`, `AudioSystem.cpp`):**
+   - Generates 4 original 16-bit PCM WAV files (`assets/sounds/ui_blip.wav`, `assets/sounds/interact_chime.wav`, `assets/sounds/phone_notify.wav`, `assets/sounds/guitar_strum.wav`) on disk if missing and plays them asynchronously via WinMM (`PlaySoundA(..., SND_FILENAME | SND_ASYNC | SND_NODEFAULT)`).
+3. **Automated Unit Test Suite (`tests/unit_tests.cpp`):**
+   - Registered with CTest (`EchoesUnitTests`, `.\build\UnitTests.exe`).
+   - Executes 18 automated assertions across 6 suites:
+     - Suite 1: `Mat4` & `Vec4` homogeneous coordinate math ($w=1$ vs. $w=0$, matrix addition, subtraction, scalar product, matrix-matrix product, rotation).
+     - Suite 2: `AABB3D` 3D intersection and `CollisionWorld::resolveMovementXZ` axis-separated sliding collision.
+     - Suite 3: `SpriteAnimator` UV sub-rectangle frame indexing, walk timer progression, and horizontal flipping.
+     - Suite 4: `DialogueSystem` external script parsing (`data/dialogue/story_dialogues.txt`) and branching choice state transitions.
+     - Suite 5: `StoryState` automatic progression unlocks, `PhoneSystem` reply flags (`data/dialogue/phone_messages.txt`), and save/load file persistence.
+     - Suite 6: Verification of all 22 required external textures, sprite sheets, portraits, WAV audio files, and dialogue scripts on disk.
+
+### Verification
+- Built both `NarrativeGame.exe` and `UnitTests.exe` with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `ctest --test-dir build --output-on-failure` (`18 Passed, 0 Failed`, 100% pass rate).
+- Executed `.\build\NarrativeGame.exe --verify-phase8`:
+  - `AllAssets=OK, LocationsMask=0x7, DemoModulesMask=0xff, MinigameHits=16/16, StoryComplete=1, GL Errors=0`.

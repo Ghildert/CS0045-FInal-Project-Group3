@@ -1,5 +1,6 @@
 #include "game/narrative/StoryState.h"
 #include "engine/core/Logger.h"
+#include "engine/audio/AudioSystem.h"
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -95,6 +96,7 @@ bool StoryState::saveToFile(
     out.close();
 
     showToast("Game Saved to " + filePath, 3.5f);
+    engine::audio::AudioSystem::play(engine::audio::SoundEvent::SaveChime);
     engine::core::Logger::info("Saved game state to " + filePath);
     return true;
 }
