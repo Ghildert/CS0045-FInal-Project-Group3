@@ -24,3 +24,41 @@
      - OpenGL Debug Output callback (`glDebugMessageCallback`, Module 6).
      - FreeGLUT callbacks (`glutDisplayFunc`, `glutReshapeFunc`, `glutKeyboardFunc`, `glutMouseFunc`, `glutMotionFunc`, `glutPassiveMotionFunc`, `glutEntryFunc`, `glutTimerFunc`).
      - Interactive verification view rendering a 3D perspective color-cube/pyramid via VBO (`glGenBuffers`, `glBindBuffer`, `glBufferData`, `glDrawArrays`) and a 2D HUD overlay with `glLineStipple` and `glutBitmapString`.
+
+
+---
+
+## Phase 1 — Core Renderer (2026-11-05)
+
+### Completed Subsystems
+1. **Debug Logging & Error Checking (`src/engine/core/Logger.h`, `Logger.cpp`):**
+   - Prints OpenGL Version, Vendor, Renderer, and `GL_MAX_LIGHTS` on startup.
+   - Enables `GL_DEBUG_OUTPUT` and registers `glDebugMessageCallback` (Module 6).
+   - Tracks OpenGL errors per frame via `glGetError()`.
+2. **Custom $4 \times 4$ Matrix & Homogeneous Coordinate Utilities (`src/engine/core/Math4x4.h`, `Math4x4.cpp`):**
+   - Implements `Vec4(x, y, z, w)` ($w=1$ for position, $w=0$ for direction) and `Mat4` (addition, subtraction, scalar product, $4 \times 4$ matrix-vector product, $4 \times 4$ matrix-matrix product, translation, rotation, scaling).
+   - Implements `Math4x4::translateVertexInMappedVBO` and `Math4x4::transformMeshVerticesInMappedVBO` using `glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)` and `glUnmapBuffer(GL_ARRAY_BUFFER)` (Modules 5 & 6).
+3. **Input System (`src/engine/input/InputManager.h`, `InputManager.cpp`):**
+   - Tracks keyboard press/release, special keys, mouse buttons (`GLUT_LEFT_BUTTON`, `GLUT_MIDDLE_BUTTON`, `GLUT_RIGHT_BUTTON`, `GLUT_DOWN`, `GLUT_UP`), mouse delta motion (`glutMotionFunc`, `glutPassiveMotionFunc`), and cursor window entry state (`glutEntryFunc` with `GLUT_ENTERED` and `GLUT_LEFT`, Module 3).
+4. **Texture Loading & Pixel-Art Asset Pipeline (`src/engine/assets/Texture2D.h`, `Texture2D.cpp`):**
+   - Uses `stb_image.h` (`stbi_load`, `stbi_image_free`) and `stb_image_write.h`.
+   - Configures `glGenTextures`, `glBindTexture`, `glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)`, `glTexParameteri` (`GL_NEAREST` for crisp pixel art, `GL_REPEAT`/`GL_CLAMP_TO_EDGE`), `glTexImage2D`, and `glGenerateMipmap(GL_TEXTURE_2D)` (Module 8).
+   - Automatically generates original pixel-art PNG textures in `assets/textures/` (`wood_floor.png`, `classroom_wall.png`, `desk_wood.png`, `chalkboard.png`, `window_glass.png`, `checker_debug.png`).
+5. **Primitive & Stipple Renderer (`src/engine/renderer/PrimitiveRenderer.h`, `PrimitiveRenderer.cpp`):**
+   - Renders `GL_POINTS` (`glPointSize`), `GL_LINES`, `GL_LINE_STRIP`, `GL_LINE_LOOP` (`glLineWidth`), `glLineStipple` (`0x00FF`, `0x0C0F`, `0xAAAA`), `GL_TRIANGLES`, `GL_TRIANGLE_STRIP`, `GL_TRIANGLE_FAN`, `GL_QUADS`, `GL_QUAD_STRIP`, and `GL_POLYGON` with `glColor3f`/`glColor4f`/`glColor3ub` (Modules 1 & 2).
+6. **Vertex Array & VBO Mesh Renderer (`src/engine/renderer/MeshVBO.h`, `MeshVBO.cpp`):**
+   - Uses `BUFFER_OFFSET(i)` macro and interleaved `Vertex3D` (position, normal, color, UV).
+   - Supports client-side vertex array drawing (`drawClientSideElements`, Module 4), VBO `glDrawArrays` (`drawVBOArrays`, Module 5), VBO+EBO `glDrawElements` (`drawVBOElements`, Modules 4 & 5), VBO `glArrayElement` (`drawVBOArrayElement`, Module 6), and `glBufferSubData`.
+7. **Camera & Projection System (`src/engine/camera/Camera3D.h`, `Camera3D.cpp`):**
+   - Implements `glViewport`, `gluPerspective`, `glFrustum`, `glOrtho`, `gluOrtho2D`, and `gluLookAt` with interactive orbit/pan/zoom and projection cycling (`P` key, Module 7).
+8. **Lighting & Material System (`src/engine/renderer/LightingSystem.h`, `LightingSystem.cpp`):**
+   - Implements `GL_LIGHT0` (warm golden sunset light) and `GL_LIGHT1` (ceiling spotlight with `GL_SPOT_DIRECTION` and `GL_SPOT_CUTOFF`), `glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ...)`, `glMaterialfv` presets, and GLUT 3D solid/wire objects (`glutSolidTeapot`/`glutWireTeapot`, `glutSolidSphere`/`glutWireSphere`, `glutSolidCone`) with runtime toggles (`1`–`4`, Module 8).
+9. **Bitmap & Stroke Text HUD (`src/engine/ui/TextRenderer.h`, `TextRenderer.cpp`):**
+   - Renders 2D HUD panels, `glRasterPos2f` + `glutBitmapString`, and `glutStrokeString` (Module 3).
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase1`:
+  - Loaded all 6 PNG textures via `stbi_load`.
+  - Created and rendered VBOs, EBOs, client-side vertex arrays, and mapped-buffer $4 \times 4$ transformations.
+  - Verified `GL Errors = 0`.
