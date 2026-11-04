@@ -1,0 +1,10 @@
+# Echoes of November Save File
+scene=classroom
+player_x=-0.35
+player_z=1.15
+flag.hallway_unlocked=1
+flag.replied_phone_sam=1
+flag.promised_rooftop_rehearsal=1
+flag.talked_to_maya=1
+flag.replied_phone_maya=0
+flag.has_sketchbook=1

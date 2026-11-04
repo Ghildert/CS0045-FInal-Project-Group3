@@ -2,13 +2,13 @@
  * CS0045 Computer Graphics and Visual Computing
  * "Echoes of November" - 2.5D Narrative Adventure Game (C++17 & OpenGL Compatibility Profile)
  *
- * PHASE 3 DELIVERABLE: First Playable Scene (Classroom Environment)
- * - Original textured 3D classroom environment (walls, floor, windows, desks, chairs, chalkboard, door)
- * - Active Phong lighting + overhead spotlight + materials
- * - Controllable 2.5D player character (Elijah) with AABB collision
- * - Animated 2.5D NPC classmate (Maya) who faces the player when nearby
- * - Interactive objects (Sketchbook, Chalkboard, Sunset Window, Hallway Door) with 3D floating indicators
- * - Working multi-line typewriter dialogue system triggered with [E] / [Enter] / Left-Click
+ * PHASE 4 DELIVERABLE: Narrative and UI Systems
+ * - Character Portraits in Dialogue Boxes (portrait_elijah.png, portrait_maya.png)
+ * - Branching Dialogue Choices & Story Flags (StoryState)
+ * - External Story & Smartphone Data Files (data/dialogue/story_dialogues.txt, phone_messages.txt)
+ * - Interactive Smartphone Messaging Overlay [Tab] (PhoneSystem)
+ * - Cinematic Scene Transitions (SceneTransition)
+ * - Save/Load System [F5 / F9] in data/saves/save_slot_1.sav
  */
 
 #ifndef GLEW_STATIC
@@ -30,11 +30,11 @@ using namespace engine;
 
 namespace {
 
-camera::Camera3D            g_camera;
+camera::Camera3D             g_camera;
 game::scenes::ClassroomScene g_classroomScene;
 
 bool g_autoVerifyExit   = false;
-bool g_verifyPhase3Mode = false;
+bool g_verifyPhase4Mode = false;
 int  g_framesRendered   = 0;
 bool g_fullscreen       = false;
 
@@ -50,17 +50,17 @@ void displayCallback() {
     core::Logger::checkGLError("displayCallback");
     ++g_framesRendered;
 
-    if (g_autoVerifyExit && g_framesRendered >= 14) {
-        bool sceneOk     = g_classroomScene.isValid();
-        int  interCount  = g_classroomScene.getInteractions().getTotalInteractionsTriggered();
-        int  dlgDone     = g_classroomScene.getDialogue().getCompletedDialoguesCount();
+    if (g_autoVerifyExit && g_framesRendered >= 28) {
+        bool sceneOk = g_classroomScene.isValid();
+        const auto& st = g_classroomScene.getStoryState();
 
-        std::cout << "[Phase 3 Self-Test] Rendered " << g_framesRendered
-                  << " frames. ClassroomScene=" << (sceneOk ? "OK" : "FAIL")
-                  << ", InteractionsTriggered=" << interCount
-                  << ", DialoguesCompleted=" << dlgDone
-                  << ", PlayerPos=(" << g_classroomScene.getPlayer().getX() << ","
-                  << g_classroomScene.getPlayer().getZ() << ")"
+        std::cout << "[Phase 4 Self-Test] Rendered " << g_framesRendered
+                  << " frames. Scene=" << (sceneOk ? "OK" : "FAIL")
+                  << ", Flag[talked_to_maya]=" << st.getFlag("talked_to_maya")
+                  << ", Flag[promised_rooftop_rehearsal]=" << st.getFlag("promised_rooftop_rehearsal")
+                  << ", Flag[replied_phone_sam]=" << st.getFlag("replied_phone_sam")
+                  << ", Flag[hallway_unlocked]=" << st.getFlag("hallway_unlocked")
+                  << ", DialoguesCompleted=" << g_classroomScene.getDialogue().getCompletedDialoguesCount()
                   << ", GL Errors=" << core::Logger::getErrorCount() << std::endl;
         glutLeaveMainLoop();
     }
@@ -119,8 +119,8 @@ void timerCallback(int value) {
     (void)value;
     constexpr float dt = 0.016f;
 
-    if (g_verifyPhase3Mode) {
-        g_classroomScene.runPhase3VerificationStep(dt, g_camera);
+    if (g_verifyPhase4Mode) {
+        g_classroomScene.runPhase4VerificationStep(dt, g_camera);
     } else {
         g_classroomScene.update(dt, g_camera);
     }
@@ -137,9 +137,10 @@ int main(int argc, char** argv) {
         if (std::strcmp(argv[i], "--verify-phase0") == 0 ||
             std::strcmp(argv[i], "--verify-phase1") == 0 ||
             std::strcmp(argv[i], "--verify-phase2") == 0 ||
-            std::strcmp(argv[i], "--verify-phase3") == 0) {
+            std::strcmp(argv[i], "--verify-phase3") == 0 ||
+            std::strcmp(argv[i], "--verify-phase4") == 0) {
             g_autoVerifyExit   = true;
-            g_verifyPhase3Mode = true;
+            g_verifyPhase4Mode = true;
         }
     }
 
@@ -147,7 +148,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(1280, 720);
     glutInitWindowPosition(100, 60);
-    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 3: First Playable Scene]");
+    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 4: Narrative & UI Systems]");
 
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {

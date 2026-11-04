@@ -108,3 +108,28 @@
 - Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
 - Executed `.\build\NarrativeGame.exe --verify-phase3`:
   - Verified loading all 8 textures/sprite-sheets, approaching an interactable target, triggering an interaction (`InteractionsTriggered=1`), and completing a full multi-line dialogue sequence (`DialoguesCompleted=1`) with `GL Errors = 0`.
+
+
+---
+
+## Phase 4 — Narrative and UI Systems (2026-11-05)
+
+### Completed Subsystems
+1. **Pixel-Art Character Portraits (`src/engine/assets/Texture2D.cpp`, `src/engine/ui/TextRenderer.cpp`):**
+   - Generates original $48 \times 48$ pixel-art dialogue portraits (`assets/sprites/portrait_elijah.png`, `assets/sprites/portrait_maya.png`), loads them via `stb_image`, and renders them inside the dialogue box using `TextRenderer::drawTexturedQuad2D`.
+2. **External Branching Story Data & Dialogue Choices (`src/game/dialogue/DialogueSystem.h`, `DialogueSystem.cpp`, `data/dialogue/story_dialogues.txt`):**
+   - Separates narrative content into external data file `data/dialogue/story_dialogues.txt`.
+   - Supports multi-option branching dialogue choices (`[1]`, `[2]`, or Up/Down arrows + `[E]`/`[Enter]`) that jump to target dialogue nodes and mutate story flags.
+3. **Story Flags & Save/Load System (`src/game/narrative/StoryState.h`, `StoryState.cpp`, `data/saves/save_slot_1.sav`):**
+   - Tracks story progression flags (`has_sketchbook`, `talked_to_maya`, `promised_rooftop_rehearsal`, `replied_phone_sam`, `replied_phone_maya`, `hallway_unlocked`), dynamic objective prompts, and HUD status toasts.
+   - Implements Quick Save (`[F5]`) and Quick Load (`[F9]`) reading/writing `data/saves/save_slot_1.sav`.
+4. **Interactive Smartphone Messaging Overlay (`src/game/narrative/PhoneSystem.h`, `PhoneSystem.cpp`, `data/dialogue/phone_messages.txt`):**
+   - Loads external chat threads (`Sam (Band Club)`, `Maya Lin`) from `data/dialogue/phone_messages.txt`.
+   - Renders an unread badge pill on the HUD and a full smartphone handset UI (`[Tab]` / `[B]`) with interactive reply choices (`[1]`, `[2]`) and thread switching (`[N]`).
+5. **Cinematic Scene Transitions (`src/engine/scene/SceneTransition.h`, `SceneTransition.cpp`):**
+   - Renders smooth fade-to-black + animated letterbox bars with midpoint callbacks and vector stroke title banners.
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase4`:
+  - Verified loading portraits (`id=9`, `id=10`), external story & phone data files, branching choice selection (`Flag[promised_rooftop_rehearsal]=1`), smartphone reply (`Flag[replied_phone_sam]=1`), automatic hallway unlock (`Flag[hallway_unlocked]=1`), save/load round-trip to `data/saves/save_slot_1.sav`, and scene transition with `GL Errors = 0`.

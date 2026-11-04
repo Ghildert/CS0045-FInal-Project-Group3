@@ -1,6 +1,9 @@
 #include "game/dialogue/DialogueSystem.h"
 #include "engine/ui/TextRenderer.h"
 #include <GL/freeglut.h>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
 namespace game {
 namespace dialogue {
@@ -8,66 +11,129 @@ namespace dialogue {
 DialogueSystem::DialogueSystem()
     : m_active(false)
     , m_currentLineIndex(0)
+    , m_selectedChoiceIndex(0)
     , m_charTimer(0.0f)
     , m_visibleChars(0)
     , m_completedCount(0)
 {}
 
-void DialogueSystem::registerSequence(const DialogueSequence& seq) {
-    m_sequences[seq.id] = seq;
+DialogueSystem::~DialogueSystem() {
+    destroy();
 }
 
-void DialogueSystem::loadDefaultClassroomDialogues() {
+void DialogueSystem::destroy() {
+    m_portraitElijah.destroy();
+    m_portraitMaya.destroy();
+}
+
+void DialogueSystem::initPortraitsAndData(const std::string& filePath) {
+    engine::assets::Texture2D::ensureDefaultTexturesOnDisk();
+    m_portraitElijah.loadFromFile("assets/sprites/portrait_elijah.png", true, false, true);
+    m_portraitMaya.loadFromFile("assets/sprites/portrait_maya.png", true, false, true);
+    loadFromExternalData(filePath);
+}
+
+void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
+    if (std::filesystem::exists(filePath)) {
+        return;
+    }
+    std::filesystem::create_directories(std::filesystem::path(filePath).parent_path());
+    std::ofstream out(filePath);
+    out << "# Echoes of November - External Branching Narrative Data\n";
+    out << "# Format:\n";
+    out << "# NODE|node_id|completion_flag_key|completion_flag_val\n";
+    out << "# LINE|speaker|dialogue_text\n";
+    out << "# CHOICE|choice_label|target_node_id|set_flag_key|set_flag_val\n\n";
+
+    // 1. Maya initial conversation with branching player choices
+    out << "NODE|maya_classroom_talk|talked_to_maya|1\n";
+    out << "LINE|Maya|Still here, Elijah? Everyone else rushed out as soon as the last bell rang.\n";
+    out << "LINE|Elijah|I was finishing the perspective study for Prof. Reyes. The sunset light is finally right.\n";
+    out << "LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting on the rooftop before the rain starts.\n";
+    out << "CHOICE|I'll head up right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1\n";
+    out << "CHOICE|Have you felt like this week is repeating itself?|maya_branch_dejavu|asked_maya_dejavu|1\n\n";
+
+    out << "NODE|maya_branch_promise|talked_to_maya|1\n";
+    out << "LINE|Elijah|I promised Sam I'd bring the acoustic arrangement. Just need my sketchbook from the front-left desk.\n";
+    out << "LINE|Maya|Awesome! Grab your sketchbook and reply to Sam on your phone [Tab], then we can take the hallway door.\n\n";
+
+    out << "NODE|maya_branch_dejavu|talked_to_maya|1\n";
+    out << "LINE|Elijah|Maya... do you ever get the feeling we've had this exact November afternoon conversation before?\n";
+    out << "LINE|Maya|You too?! When the bell rang at 4:30, I swore I remembered the rain hitting the glass at that exact angle.\n";
+    out << "LINE|Maya|Check your sketchbook on the front-left desk—I think you wrote something about it in the margin.\n\n";
+
+    // 2. Interactive Sketchbook on Front-Left Desk
+    out << "NODE|inspect_sketchbook|has_sketchbook|1\n";
+    out << "LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.\n";
+    out << "LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Don't miss the rooftop rehearsal at 5:00 PM.'\n";
+    out << "LINE|System|[Obtained Sketchbook & Chords — Flag 'has_sketchbook' = 1]\n\n";
+
+    // 3. Chalkboard Exam Schedule
+    out << "NODE|inspect_chalkboard|read_chalkboard|1\n";
+    out << "LINE|Chalkboard|CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase — Friday, Nov 15.\n";
+    out << "LINE|Elijah|Primitives, Vertex Arrays, VBOs, 4x4 Matrices, Viewing, and Phong Lighting... all set.\n\n";
+
+    // 4. Sunset Window
+    out << "NODE|inspect_window|looked_out_window|1\n";
+    out << "LINE|Elijah|Warm amber sunlight pours across the wooden floorboards from the west courtyard.\n";
+    out << "LINE|Elijah|Dark rainclouds are gathering over the train viaduct in the distance.\n\n";
+
+    // 5. Classroom Door (locked vs unlocked)
+    out << "NODE|inspect_door_locked||0\n";
+    out << "LINE|Elijah|The sliding wooden door to the third-floor school hallway.\n";
+    out << "LINE|Elijah|I should grab my Sketchbook from the front-left desk and talk to Maya before heading out.\n\n";
+
+    out << "NODE|inspect_door_unlocked|entered_hallway_transition|1\n";
+    out << "LINE|Elijah|I've got my sketchbook and checked in with Maya. Time to step out into the hallway.\n";
+
+    out.close();
+}
+
+void DialogueSystem::loadFromExternalData(const std::string& filePath) {
+    ensureDefaultStoryFileOnDisk(filePath);
     m_sequences.clear();
 
-    // 1. NPC Classmate Maya (standing by the late-afternoon classroom window)
-    registerSequence(DialogueSequence{
-        "maya_classroom_talk",
-        {
-            { "Maya",   "Still here, Elijah? Everyone else rushed out as soon as the last bell rang." },
-            { "Elijah", "I was finishing the perspective study for Prof. Reyes. The light is finally right." },
-            { "Maya",   "Look at the sky outside... It feels like every November evening blurs together lately." },
-            { "Maya",   "Oh! Did you check the sketchbook on the front-left desk? I think you left your charcoal notes in it." },
-            { "Elijah", "Right, thanks Maya. I'll grab it before they lock the hallway." }
-        }
-    });
+    std::ifstream in(filePath);
+    if (!in.is_open()) {
+        return;
+    }
 
-    // 2. Interactive Object: Forgotten Sketchbook on Front-Left Student Desk
-    registerSequence(DialogueSequence{
-        "inspect_sketchbook",
-        {
-            { "Elijah", "My hardcover sketchbook. A loose page of 3D perspective studies is tucked inside." },
-            { "Elijah", "In the margin, someone wrote: 'Don't forget the rooftop rehearsal after 5:00 PM.'" },
-            { "System", "[Obtained Note: Rooftop Rehearsal Reminder]" }
+    std::string line;
+    DialogueSequence* current = nullptr;
+    while (std::getline(in, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
         }
-    });
+        std::vector<std::string> parts;
+        std::stringstream ss(line);
+        std::string token;
+        while (std::getline(ss, token, '|')) {
+            parts.push_back(token);
+        }
+        if (parts.empty()) continue;
 
-    // 3. Interactive Object: Front Chalkboard Exam Schedule
-    registerSequence(DialogueSequence{
-        "inspect_chalkboard",
-        {
-            { "Chalkboard", "CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase — Friday, Nov 15." },
-            { "Elijah",     "Primitives, Vertex Arrays, VBOs, 4x4 Matrices, Viewing, and Phong Lighting... almost ready." }
+        if (parts[0] == "NODE" && parts.size() >= 2) {
+            DialogueSequence seq;
+            seq.id                  = parts[1];
+            seq.completionFlagKey   = (parts.size() >= 3) ? parts[2] : "";
+            seq.completionFlagValue = (parts.size() >= 4 && !parts[3].empty()) ? std::stoi(parts[3]) : 1;
+            m_sequences[seq.id]     = seq;
+            current                 = &m_sequences[seq.id];
+        } else if (parts[0] == "LINE" && parts.size() >= 3 && current) {
+            current->lines.push_back(DialogueLine{ parts[1], parts[2] });
+        } else if (parts[0] == "CHOICE" && parts.size() >= 5 && current) {
+            current->choices.push_back(DialogueChoice{
+                parts[1],
+                parts[2],
+                parts[3],
+                std::stoi(parts[4])
+            });
         }
-    });
+    }
+}
 
-    // 4. Interactive Object: Sunset Window on Left Wall
-    registerSequence(DialogueSequence{
-        "inspect_window",
-        {
-            { "Elijah", "Warm amber sunlight pours across the wooden floorboards from the west courtyard." },
-            { "Elijah", "Dark rainclouds are gathering over the train viaduct in the distance." }
-        }
-    });
-
-    // 5. Interactive Object: Classroom Exit Door on Right Wall
-    registerSequence(DialogueSequence{
-        "inspect_door",
-        {
-            { "Elijah", "The sliding wooden door to the third-floor school hallway." },
-            { "Elijah", "I should check in with Maya and grab my sketchbook notes before heading out." }
-        }
-    });
+void DialogueSystem::registerSequence(const DialogueSequence& seq) {
+    m_sequences[seq.id] = seq;
 }
 
 bool DialogueSystem::startDialogue(const std::string& sequenceId) {
@@ -76,15 +142,64 @@ bool DialogueSystem::startDialogue(const std::string& sequenceId) {
         return false;
     }
 
-    m_active           = true;
-    m_activeSequenceId = sequenceId;
-    m_currentLineIndex = 0;
-    m_charTimer        = 0.0f;
-    m_visibleChars     = 0;
+    m_active              = true;
+    m_activeSequenceId    = sequenceId;
+    m_currentLineIndex    = 0;
+    m_selectedChoiceIndex = 0;
+    m_charTimer           = 0.0f;
+    m_visibleChars        = 0;
     return true;
 }
 
-void DialogueSystem::advanceOrCompleteLine() {
+bool DialogueSystem::isWaitingForChoice() const {
+    if (!m_active) return false;
+    auto it = m_sequences.find(m_activeSequenceId);
+    if (it == m_sequences.end()) return false;
+    const auto& seq = it->second;
+    if (seq.choices.empty()) return false;
+    bool onLastLine = (m_currentLineIndex + 1 == static_cast<int>(seq.lines.size()));
+    bool lineRevealed = (m_visibleChars >= seq.lines[m_currentLineIndex].text.size());
+    return onLastLine && lineRevealed;
+}
+
+void DialogueSystem::moveChoiceCursor(int delta) {
+    if (!isWaitingForChoice()) return;
+    auto it = m_sequences.find(m_activeSequenceId);
+    int n = static_cast<int>(it->second.choices.size());
+    if (n <= 0) return;
+    m_selectedChoiceIndex = (m_selectedChoiceIndex + delta + n) % n;
+}
+
+bool DialogueSystem::selectChoice(int choiceIndex, narrative::StoryState* storyState) {
+    if (!isWaitingForChoice()) {
+        return false;
+    }
+    auto it = m_sequences.find(m_activeSequenceId);
+    const auto& seq = it->second;
+    if (choiceIndex < 0 || choiceIndex >= static_cast<int>(seq.choices.size())) {
+        return false;
+    }
+
+    // Apply current node completion flag first
+    if (storyState && !seq.completionFlagKey.empty()) {
+        storyState->setFlag(seq.completionFlagKey, seq.completionFlagValue);
+    }
+
+    const auto& choice = seq.choices[choiceIndex];
+    if (storyState && !choice.setFlagKey.empty()) {
+        storyState->setFlag(choice.setFlagKey, choice.setFlagValue);
+    }
+
+    if (!choice.targetNodeId.empty() && m_sequences.count(choice.targetNodeId) > 0) {
+        return startDialogue(choice.targetNodeId);
+    }
+
+    m_active = false;
+    ++m_completedCount;
+    return true;
+}
+
+void DialogueSystem::advanceOrCompleteLine(narrative::StoryState* storyState) {
     if (!m_active) {
         return;
     }
@@ -95,18 +210,25 @@ void DialogueSystem::advanceOrCompleteLine() {
         return;
     }
 
-    const auto& lines = it->second.lines;
-    const std::string& fullText = lines[m_currentLineIndex].text;
+    const auto& seq = it->second;
+    const std::string& fullText = seq.lines[m_currentLineIndex].text;
 
-    // If typewriter effect is still revealing characters, reveal full line immediately
     if (m_visibleChars < fullText.size()) {
         m_visibleChars = fullText.size();
         return;
     }
 
-    // Otherwise advance to next line, or end sequence
+    // If waiting at a branching choice prompt, confirm currently highlighted choice
+    if (isWaitingForChoice()) {
+        selectChoice(m_selectedChoiceIndex, storyState);
+        return;
+    }
+
     ++m_currentLineIndex;
-    if (m_currentLineIndex >= static_cast<int>(lines.size())) {
+    if (m_currentLineIndex >= static_cast<int>(seq.lines.size())) {
+        if (storyState && !seq.completionFlagKey.empty()) {
+            storyState->setFlag(seq.completionFlagKey, seq.completionFlagValue);
+        }
         m_active = false;
         ++m_completedCount;
     } else {
@@ -129,12 +251,22 @@ void DialogueSystem::update(float dt) {
     const std::string& fullText = it->second.lines[m_currentLineIndex].text;
     if (m_visibleChars < fullText.size()) {
         m_charTimer += dt;
-        constexpr float kSecPerChar = 0.018f; // Crisp typewriter speed (~55 chars/sec)
+        constexpr float kSecPerChar = 0.016f;
         while (m_charTimer >= kSecPerChar && m_visibleChars < fullText.size()) {
             m_charTimer -= kSecPerChar;
             ++m_visibleChars;
         }
     }
+}
+
+const engine::assets::Texture2D* DialogueSystem::getPortraitForSpeaker(const std::string& speaker) const {
+    if (speaker == "Elijah" && m_portraitElijah.isValid()) {
+        return &m_portraitElijah;
+    }
+    if (speaker == "Maya" && m_portraitMaya.isValid()) {
+        return &m_portraitMaya;
+    }
+    return nullptr;
 }
 
 void DialogueSystem::render2D(int screenWidth, int screenHeight) const {
@@ -148,15 +280,16 @@ void DialogueSystem::render2D(int screenWidth, int screenHeight) const {
         return;
     }
 
-    const auto& lines = it->second.lines;
+    const auto& seq   = it->second;
+    const auto& lines = seq.lines;
     const DialogueLine& line = lines[m_currentLineIndex];
     std::string shownText = line.text.substr(0, m_visibleChars);
 
-    float boxW = static_cast<float>(screenWidth) - 180.0f;
-    if (boxW > 960.0f) boxW = 960.0f;
-    float boxH = 128.0f;
+    float boxW = static_cast<float>(screenWidth) - 160.0f;
+    if (boxW > 980.0f) boxW = 980.0f;
+    float boxH = 136.0f;
     float boxX = (static_cast<float>(screenWidth) - boxW) * 0.5f;
-    float boxY = 26.0f;
+    float boxY = 22.0f;
 
     // Main dialogue container panel
     engine::ui::TextRenderer::drawPanel2D(
@@ -164,9 +297,21 @@ void DialogueSystem::render2D(int screenWidth, int screenHeight) const {
         0.05f, 0.06f, 0.11f, 0.94f,
         0.95f, 0.76f, 0.38f);
 
+    // Character Portrait on the left inside the dialogue box
+    const auto* portrait = getPortraitForSpeaker(line.speaker);
+    float textOffsetX = boxX + 28.0f;
+    if (portrait) {
+        float portSize = 104.0f;
+        engine::ui::TextRenderer::drawTexturedQuad2D(
+            *portrait,
+            boxX + 18.0f, boxY + 16.0f,
+            portSize, portSize);
+        textOffsetX = boxX + 140.0f;
+    }
+
     // Speaker Nameplate tab above top-left corner of dialogue box
     engine::ui::TextRenderer::drawPanel2D(
-        boxX + 18.0f, boxY + boxH - 4.0f, 175.0f, 32.0f,
+        boxX + 18.0f, boxY + boxH - 4.0f, 185.0f, 32.0f,
         0.16f, 0.12f, 0.22f, 0.96f,
         0.98f, 0.82f, 0.42f);
 
@@ -176,22 +321,51 @@ void DialogueSystem::render2D(int screenWidth, int screenHeight) const {
         GLUT_BITMAP_HELVETICA_18,
         1.0f, 0.88f, 0.48f);
 
-    // Spoken dialogue line (Module 3 glutBitmapString)
+    // Spoken dialogue line
     engine::ui::TextRenderer::drawBitmapText2D(
-        boxX + 28.0f, boxY + 74.0f,
+        textOffsetX, boxY + 82.0f,
         shownText,
         GLUT_BITMAP_HELVETICA_18,
         0.95f, 0.96f, 0.98f);
 
-    // Footer prompt indicator
-    std::string progressLabel =
-        "Line " + std::to_string(m_currentLineIndex + 1) + "/" + std::to_string(lines.size()) +
-        "  |  Press [E] / [Space] / [Left-Click] to continue";
-    engine::ui::TextRenderer::drawBitmapText2D(
-        boxX + boxW - 415.0f, boxY + 18.0f,
-        progressLabel,
-        GLUT_BITMAP_HELVETICA_12,
-        0.75f, 0.84f, 0.92f);
+    // If waiting for branching player choice, render choice buttons above the dialogue box
+    if (isWaitingForChoice()) {
+        for (size_t i = 0; i < seq.choices.size(); ++i) {
+            bool selected = (static_cast<int>(i) == m_selectedChoiceIndex);
+            float choiceW = boxW - 140.0f;
+            float choiceH = 34.0f;
+            float choiceX = textOffsetX;
+            float choiceY = boxY + 42.0f - static_cast<float>(i) * 36.0f;
+
+            engine::ui::TextRenderer::drawPanel2D(
+                choiceX, choiceY, choiceW, choiceH,
+                selected ? 0.22f : 0.10f,
+                selected ? 0.18f : 0.12f,
+                selected ? 0.32f : 0.20f,
+                0.96f,
+                selected ? 1.0f  : 0.55f,
+                selected ? 0.84f : 0.65f,
+                selected ? 0.35f : 0.78f);
+
+            std::string prefix = selected ? "> [" : "  [";
+            engine::ui::TextRenderer::drawBitmapText2D(
+                choiceX + 14.0f, choiceY + 10.0f,
+                prefix + std::to_string(i + 1) + "] " + seq.choices[i].label,
+                GLUT_BITMAP_HELVETICA_12,
+                selected ? 1.0f : 0.85f,
+                selected ? 0.92f : 0.88f,
+                selected ? 0.52f : 0.92f);
+        }
+    } else {
+        std::string progressLabel =
+            "Line " + std::to_string(m_currentLineIndex + 1) + "/" + std::to_string(lines.size()) +
+            "  |  Press [E] / [Space] / [Left-Click] to continue";
+        engine::ui::TextRenderer::drawBitmapText2D(
+            boxX + boxW - 415.0f, boxY + 16.0f,
+            progressLabel,
+            GLUT_BITMAP_HELVETICA_12,
+            0.75f, 0.84f, 0.92f);
+    }
 }
 
 } // namespace dialogue

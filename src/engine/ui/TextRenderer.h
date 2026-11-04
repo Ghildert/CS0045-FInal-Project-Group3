@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/freeglut_ext.h>
+#include "engine/assets/Texture2D.h"
 #include <string>
 
 namespace engine {
@@ -38,6 +39,10 @@ public:
         float x, float y, float width, float height,
         float bgR = 0.06f, float bgG = 0.08f, float bgB = 0.12f, float bgA = 0.82f,
         float borderR = 0.85f, float borderG = 0.68f, float borderB = 0.38f);
+
+    static void drawTexturedQuad2D(
+        const assets::Texture2D& texture,
+        float x, float y, float width, float height);
 };
 
 } // namespace ui

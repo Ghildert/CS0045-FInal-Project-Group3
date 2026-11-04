@@ -1,0 +1,10 @@
+# Echoes of November - Smartphone Messaging Data
+THREAD|Sam (Band Club)|replied_phone_sam
+MSG|Sam|Yo Elijah! Are you and Maya bringing the acoustic guitar to the rooftop?
+MSG|Sam|Rain's starting soon, let me know if you're still in Room 304!
+CHOICE|On my way with the chords!|Grabbing my sketchbook in 304, see you in 5 mins!|Sweet! I'll unlock the stairwell door.|replied_phone_sam|1
+CHOICE|Running a bit late, start tuning.|Still talking with Maya, give me 10 minutes.|No rush bro, stay dry!|replied_phone_sam|2
+THREAD|Maya Lin|replied_phone_maya
+MSG|Maya|Don't forget the perspective drawing notebook on the front-left desk!
+CHOICE|Got it, thanks Maya!|Just picked it up, thanks for spotting it!|Anytime :) Let's head out when you're ready.|replied_phone_maya|1
+CHOICE|Wait, whose handwriting is in it?|Wait... did you write the rooftop note in the margin?|Haha maybe! Come talk to me by the window.|replied_phone_maya|2

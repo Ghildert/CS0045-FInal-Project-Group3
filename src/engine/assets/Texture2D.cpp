@@ -405,6 +405,107 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
         198, 138, 72,  // Cardigan
         52, 138, 132,  // Ribbon
         true);
+
+    // Helper lambda to generate a 48x48 pixel-art dialogue portrait PNG
+    auto generatePortraitPNG = [](const std::string& outPath,
+                                  unsigned char bgR,   unsigned char bgG,   unsigned char bgB,
+                                  unsigned char hairR, unsigned char hairG, unsigned char hairB,
+                                  unsigned char vestR, unsigned char vestG, unsigned char vestB,
+                                  unsigned char tieR,  unsigned char tieG,  unsigned char tieB,
+                                  bool longHair) {
+        const int PW = 48;
+        const int PH = 48;
+        std::vector<unsigned char> img(PW * PH * 4, 255);
+
+        auto putPx = [&](int px, int py, unsigned char r, unsigned char g, unsigned char b) {
+            if (px < 0 || px >= PW || py < 0 || py >= PH) return;
+            int idx = (py * PW + px) * 4;
+            img[idx + 0] = r;
+            img[idx + 1] = g;
+            img[idx + 2] = b;
+            img[idx + 3] = 255;
+        };
+
+        auto fillRect = [&](int x0, int y0, int w, int h,
+                            unsigned char r, unsigned char g, unsigned char b) {
+            for (int dy = 0; dy < h; ++dy) {
+                for (int dx = 0; dx < w; ++dx) {
+                    putPx(x0 + dx, y0 + dy, r, g, b);
+                }
+            }
+        };
+
+        // Soft dithered portrait background + warm gold frame
+        for (int y = 0; y < PH; ++y) {
+            for (int x = 0; x < PW; ++x) {
+                bool border = (x < 2 || x >= PW - 2 || y < 2 || y >= PH - 2);
+                if (border) {
+                    putPx(x, y, 225, 182, 88);
+                } else {
+                    int d = ((x + y) % 2) * 6;
+                    putPx(x, y,
+                          static_cast<unsigned char>(bgR + d),
+                          static_cast<unsigned char>(bgG + d),
+                          static_cast<unsigned char>(bgB + d));
+                }
+            }
+        }
+
+        // Long hair behind shoulders
+        if (longHair) {
+            fillRect(10, 14, 28, 28, hairR, hairG, hairB);
+        }
+
+        // Shoulders & School Uniform Collar (y: 32..46)
+        fillRect(8,  33, 32, 13, 24, 22, 30);
+        fillRect(10, 34, 28, 12, vestR, vestG, vestB);
+        fillRect(18, 33, 12, 10, 245, 242, 236);
+        fillRect(22, 36, 4,  10, tieR, tieG, tieB);
+
+        // Neck & Face (y: 10..33)
+        fillRect(20, 29, 8,  6,  232, 188, 156);
+        fillRect(12, 9,  24, 22, 24, 22, 30);
+        fillRect(14, 11, 20, 19, 246, 206, 174);
+
+        // Warm cheek blush & smile
+        fillRect(15, 22, 3, 2, 238, 152, 138);
+        fillRect(30, 22, 3, 2, 238, 152, 138);
+        fillRect(21, 26, 6, 1, 145, 82, 78);
+
+        // Expressive Eyes with specular catchlight
+        fillRect(17, 18, 4, 4, 30, 26, 36);
+        fillRect(27, 18, 4, 4, 30, 26, 36);
+        putPx(17, 18, 255, 255, 255);
+        putPx(27, 18, 255, 255, 255);
+
+        // Eyebrows & Hair Bangs
+        fillRect(16, 16, 5, 1, hairR, hairG, hairB);
+        fillRect(27, 16, 5, 1, hairR, hairG, hairB);
+        fillRect(12, 7,  24, 7, hairR, hairG, hairB);
+        fillRect(12, 14, 4,  9, hairR, hairG, hairB);
+        fillRect(32, 14, 4,  9, hairR, hairG, hairB);
+        fillRect(19, 14, 3,  3, hairR, hairG, hairB);
+        fillRect(25, 14, 3,  3, hairR, hairG, hairB);
+
+        writePNGIfMissing(outPath, PW, PH, img);
+    };
+
+    // 9. Dialogue Portraits for Elijah & Maya
+    generatePortraitPNG(
+        "assets/sprites/portrait_elijah.png",
+        38, 48, 72,    // Background
+        38, 32, 42,    // Hair
+        58, 78, 112,   // Vest
+        195, 62, 58,   // Tie
+        false);
+
+    generatePortraitPNG(
+        "assets/sprites/portrait_maya.png",
+        68, 46, 62,    // Background
+        78, 46, 38,    // Hair
+        198, 138, 72,  // Cardigan
+        52, 138, 132,  // Ribbon
+        true);
 }
 
 } // namespace assets

@@ -81,5 +81,31 @@ void TextRenderer::drawPanel2D(
     glPopAttrib();
 }
 
+void TextRenderer::drawTexturedQuad2D(
+    const assets::Texture2D& texture,
+    float x, float y, float width, float height)
+{
+    if (!texture.isValid()) {
+        return;
+    }
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    texture.bind();
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(x,         y);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y + height);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(x,         y + height);
+    glEnd();
+    assets::Texture2D::unbind();
+
+    glPopAttrib();
+}
+
 } // namespace ui
 } // namespace engine

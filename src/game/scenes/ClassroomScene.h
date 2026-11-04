@@ -6,10 +6,13 @@
 #include "engine/renderer/LightingSystem.h"
 #include "engine/collision/CollisionSystem.h"
 #include "engine/camera/Camera3D.h"
+#include "engine/scene/SceneTransition.h"
 #include "game/player/PlayerController.h"
 #include "game/characters/NPCCharacter.h"
 #include "game/interactions/InteractionSystem.h"
 #include "game/dialogue/DialogueSystem.h"
+#include "game/narrative/StoryState.h"
+#include "game/narrative/PhoneSystem.h"
 
 namespace game {
 namespace scenes {
@@ -30,22 +33,25 @@ public:
     void onSpecialKeyPress(int key);
     void onMouseClick(int button, int state);
 
-    // Automated Phase 3 verification helper
-    void runPhase3VerificationStep(float dt, engine::camera::Camera3D& camera);
+    // Automated Phase 3/4 verification helper
+    void runPhase4VerificationStep(float dt, engine::camera::Camera3D& camera);
 
     bool isValid() const;
     const player::PlayerController& getPlayer() const { return m_player; }
     const characters::NPCCharacter& getMayaNPC() const { return m_npcMaya; }
     const interactions::InteractionManager& getInteractions() const { return m_interactions; }
     const dialogue::DialogueSystem& getDialogue() const { return m_dialogue; }
+    const narrative::StoryState& getStoryState() const { return m_storyState; }
+    const narrative::PhoneSystem& getPhoneSystem() const { return m_phoneSystem; }
     engine::renderer::LightingSystem& getLighting() { return m_lighting; }
 
 private:
     void buildCollidersAndInteractables();
     void drawDeskWithChair3D(float x, float z, float yawDegrees, const engine::assets::Texture2D& woodTex);
 
-    engine::renderer::LightingSystem m_lighting;
+    engine::renderer::LightingSystem  m_lighting;
     engine::collision::CollisionWorld m_collisionWorld;
+    engine::scene::SceneTransition    m_transition;
 
     // Classroom Textures
     engine::assets::Texture2D m_texWoodFloor;
@@ -69,16 +75,19 @@ private:
     engine::renderer::MeshVBO m_meshSketchbookProp;
     engine::renderer::MeshVBO m_meshDynamicPyramid;
 
-    // Gameplay Entities & Systems
+    // Gameplay Entities & Narrative Systems
     player::PlayerController         m_player;
     characters::NPCCharacter         m_npcMaya;
     interactions::InteractionManager m_interactions;
     dialogue::DialogueSystem         m_dialogue;
+    narrative::StoryState            m_storyState;
+    narrative::PhoneSystem           m_phoneSystem;
 
     float m_timeSeconds;
     bool  m_showDebugOverlay;
     bool  m_useCheckerTexture;
     bool  m_wireframeProps;
+    int   m_verifyStep;
 };
 
 } // namespace scenes

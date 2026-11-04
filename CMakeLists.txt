@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EchoesOfNovember VERSION 0.4.0 LANGUAGES CXX)
+project(EchoesOfNovember VERSION 0.5.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +28,7 @@ set(ENGINE_SOURCES
     src/engine/renderer/LightingSystem.cpp
     src/engine/collision/CollisionSystem.cpp
     src/engine/camera/Camera3D.cpp
+    src/engine/scene/SceneTransition.cpp
     src/engine/ui/TextRenderer.cpp
 )
 
@@ -36,6 +37,8 @@ set(GAME_SOURCES
     src/game/characters/NPCCharacter.cpp
     src/game/interactions/InteractionSystem.cpp
     src/game/dialogue/DialogueSystem.cpp
+    src/game/narrative/StoryState.cpp
+    src/game/narrative/PhoneSystem.cpp
     src/game/scenes/ClassroomScene.cpp
 )
 

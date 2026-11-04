@@ -1,0 +1,41 @@
+# Echoes of November - External Branching Narrative Data
+# Format:
+# NODE|node_id|completion_flag_key|completion_flag_val
+# LINE|speaker|dialogue_text
+# CHOICE|choice_label|target_node_id|set_flag_key|set_flag_val
+
+NODE|maya_classroom_talk|talked_to_maya|1
+LINE|Maya|Still here, Elijah? Everyone else rushed out as soon as the last bell rang.
+LINE|Elijah|I was finishing the perspective study for Prof. Reyes. The sunset light is finally right.
+LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting on the rooftop before the rain starts.
+CHOICE|I'll head up right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1
+CHOICE|Have you felt like this week is repeating itself?|maya_branch_dejavu|asked_maya_dejavu|1
+
+NODE|maya_branch_promise|talked_to_maya|1
+LINE|Elijah|I promised Sam I'd bring the acoustic arrangement. Just need my sketchbook from the front-left desk.
+LINE|Maya|Awesome! Grab your sketchbook and reply to Sam on your phone [Tab], then we can take the hallway door.
+
+NODE|maya_branch_dejavu|talked_to_maya|1
+LINE|Elijah|Maya... do you ever get the feeling we've had this exact November afternoon conversation before?
+LINE|Maya|You too?! When the bell rang at 4:30, I swore I remembered the rain hitting the glass at that exact angle.
+LINE|Maya|Check your sketchbook on the front-left desk—I think you wrote something about it in the margin.
+
+NODE|inspect_sketchbook|has_sketchbook|1
+LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.
+LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Don't miss the rooftop rehearsal at 5:00 PM.'
+LINE|System|[Obtained Sketchbook & Chords — Flag 'has_sketchbook' = 1]
+
+NODE|inspect_chalkboard|read_chalkboard|1
+LINE|Chalkboard|CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase — Friday, Nov 15.
+LINE|Elijah|Primitives, Vertex Arrays, VBOs, 4x4 Matrices, Viewing, and Phong Lighting... all set.
+
+NODE|inspect_window|looked_out_window|1
+LINE|Elijah|Warm amber sunlight pours across the wooden floorboards from the west courtyard.
+LINE|Elijah|Dark rainclouds are gathering over the train viaduct in the distance.
+
+NODE|inspect_door_locked||0
+LINE|Elijah|The sliding wooden door to the third-floor school hallway.
+LINE|Elijah|I should grab my Sketchbook from the front-left desk and talk to Maya before heading out.
+
+NODE|inspect_door_unlocked|entered_hallway_transition|1
+LINE|Elijah|I've got my sketchbook and checked in with Maya. Time to step out into the hallway.

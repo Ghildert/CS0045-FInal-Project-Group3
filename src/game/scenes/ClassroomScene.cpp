@@ -16,6 +16,7 @@ ClassroomScene::ClassroomScene()
     , m_showDebugOverlay(false)
     , m_useCheckerTexture(false)
     , m_wireframeProps(false)
+    , m_verifyStep(0)
 {}
 
 ClassroomScene::~ClassroomScene() {
@@ -46,7 +47,6 @@ void ClassroomScene::init() {
     m_meshSketchbookProp.buildTexturedBox(0.34f, 0.04f, 0.26f, 1.0f, 1.0f, GL_STATIC_DRAW);
     m_meshDynamicPyramid.buildPyramid(0.38f, 0.48f, GL_DYNAMIC_DRAW);
 
-    // Module 6 Mapped-VBO vertex translation at scene startup
     engine::core::Math4x4::translateVertexInMappedVBO(
         m_meshDynamicPyramid.getVBOId(), 0.0f, 0.02f, 0.0f, 0);
 
@@ -60,12 +60,17 @@ void ClassroomScene::init() {
         -2.75f, 0.0f, -0.55f,
         "maya_classroom_talk");
 
-    m_dialogue.loadDefaultClassroomDialogues();
+    // Initialize Phase 4 Narrative, Portraits, External Dialogue & Phone Systems
+    m_storyState.resetNewGame();
+    m_dialogue.initPortraitsAndData("data/dialogue/story_dialogues.txt");
+    m_phoneSystem.loadFromExternalData("data/dialogue/phone_messages.txt");
+
     buildCollidersAndInteractables();
     m_lighting.initClassroomLighting();
 }
 
 void ClassroomScene::destroy() {
+    m_dialogue.destroy();
     m_player.destroy();
     m_npcMaya.destroy();
 
@@ -93,27 +98,21 @@ void ClassroomScene::destroy() {
 void ClassroomScene::buildCollidersAndInteractables() {
     m_collisionWorld.clear();
 
-    // Room perimeter walls
     m_collisionWorld.addBoxCollider( 0.0f, 1.9f, -3.30f, 9.4f, 3.8f, 0.35f, "BackWall");
     m_collisionWorld.addBoxCollider( 0.0f, 1.9f,  3.35f, 9.4f, 3.8f, 0.25f, "FrontBoundary");
     m_collisionWorld.addBoxCollider(-4.50f, 1.9f, 0.0f,  0.35f, 3.8f, 6.8f, "LeftWindowWall");
     m_collisionWorld.addBoxCollider( 4.50f, 1.9f, 0.0f,  0.35f, 3.8f, 6.8f, "RightHallwayWall");
 
-    // Teacher's Desk & 6 Student Desks (2 rows x 3 columns)
     m_collisionWorld.addBoxCollider( 1.85f, 0.42f, -1.85f, 1.40f, 0.85f, 0.82f, "TeacherDesk");
-
     m_collisionWorld.addBoxCollider(-1.85f, 0.42f,  0.05f, 1.32f, 0.85f, 0.82f, "StudentDesk_R1C1");
     m_collisionWorld.addBoxCollider( 0.15f, 0.42f,  0.05f, 1.32f, 0.85f, 0.82f, "StudentDesk_R1C2");
     m_collisionWorld.addBoxCollider( 2.15f, 0.42f,  0.05f, 1.32f, 0.85f, 0.82f, "StudentDesk_R1C3");
-
     m_collisionWorld.addBoxCollider(-1.85f, 0.42f,  1.85f, 1.32f, 0.85f, 0.82f, "StudentDesk_R2C1");
     m_collisionWorld.addBoxCollider( 0.15f, 0.42f,  1.85f, 1.32f, 0.85f, 0.82f, "StudentDesk_R2C2");
     m_collisionWorld.addBoxCollider( 2.15f, 0.42f,  1.85f, 1.32f, 0.85f, 0.82f, "StudentDesk_R2C3");
 
-    // Register NPC Maya collider
     m_npcMaya.registerCollider(m_collisionWorld);
 
-    // Register Interactive Objects & NPC in InteractionManager
     m_interactions.clear();
     m_interactions.registerInteractable(
         "maya_npc",
@@ -150,29 +149,26 @@ void ClassroomScene::buildCollidersAndInteractables() {
     m_interactions.registerInteractable(
         "classroom_door",
         "Hallway Sliding Door",
-        "[E] Check Hallway Door",
-        "inspect_door",
+        "[E] Open Hallway Door",
+        "inspect_door_locked",
         4.15f, 1.45f, -1.65f,
         1.35f);
 }
 
 void ClassroomScene::update(float dt, engine::camera::Camera3D& camera) {
     m_timeSeconds += dt;
+    m_storyState.update(dt);
+    m_transition.update(dt);
 
-    // Update active dialogue typewriter or player movement
     if (m_dialogue.isActive()) {
         m_dialogue.update(dt);
-    } else if (!camera.isFreeCameraEnabled()) {
+    } else if (!m_phoneSystem.isOpen() && !m_transition.isActive() && !camera.isFreeCameraEnabled()) {
         m_player.update(dt, m_collisionWorld, true);
     }
 
-    // Update NPC Maya idle animation & facing toward player
     m_npcMaya.update(dt, m_player.getX(), m_player.getZ());
-
-    // Update proximity detection for interactive objects/NPCs
     m_interactions.update(m_player.getX(), m_player.getZ());
 
-    // Update camera
     camera.updateFreeOrbit(dt);
     if (!camera.isFreeCameraEnabled()) {
         camera.setNarrativeTarget(
@@ -182,30 +178,49 @@ void ClassroomScene::update(float dt, engine::camera::Camera3D& camera) {
             dt);
     }
 
-    // Module 6 Subtopic 1 & 2: Subtle vertical bobbing on pyramid apex vertex via glMapBuffer
     float bobVel = std::cos(m_timeSeconds * 3.0f) * 0.0015f;
     engine::core::Math4x4::translateVertexInMappedVBO(
         m_meshDynamicPyramid.getVBOId(), 0.0f, bobVel, 0.0f, 0);
 }
 
-void ClassroomScene::runPhase3VerificationStep(float dt, engine::camera::Camera3D& camera) {
+void ClassroomScene::runPhase4VerificationStep(float dt, engine::camera::Camera3D& camera) {
     m_timeSeconds += dt;
+    m_storyState.update(dt);
+    m_transition.update(dt);
 
-    // Step 1: Walk toward Maya & Sketchbook until an interactable is in range, then trigger & complete dialogue
-    m_interactions.update(m_player.getX(), m_player.getZ());
-    if (!m_dialogue.isActive() && m_dialogue.getCompletedDialoguesCount() == 0) {
-        auto* activeObj = m_interactions.getActiveInteractableMutable();
-        if (activeObj) {
-            m_interactions.incrementInteractionCount(activeObj);
-            m_dialogue.startDialogue(activeObj->dialogueNodeId);
-        } else {
-            // Walk toward Maya at (-2.75, -0.55) / Sketchbook at (-1.85, 0.05)
-            m_player.simulateMoveStep(-0.85f, -0.65f, 0.09f, m_collisionWorld);
+    if (m_verifyStep == 0) {
+        // Step 0: Start Maya's branching dialogue
+        m_interactions.update(m_npcMaya.getX(), m_npcMaya.getZ());
+        if (auto* obj = m_interactions.getActiveInteractableMutable()) {
+            m_interactions.incrementInteractionCount(obj);
         }
-    } else if (m_dialogue.isActive()) {
-        // Rapidly advance through all lines of the active dialogue to verify full completion
-        m_dialogue.advanceOrCompleteLine();
-        m_dialogue.advanceOrCompleteLine();
+        m_dialogue.startDialogue("maya_classroom_talk");
+        m_verifyStep = 1;
+    } else if (m_verifyStep == 1) {
+        // Step 1: Advance through Maya's lines until waiting for branching choice, then pick Choice 0
+        if (m_dialogue.isWaitingForChoice()) {
+            m_dialogue.selectChoice(0, &m_storyState);
+            m_verifyStep = 2;
+        } else {
+            m_dialogue.advanceOrCompleteLine(&m_storyState);
+        }
+    } else if (m_verifyStep == 2) {
+        // Step 2: Finish the branched target sequence ("maya_branch_promise")
+        if (m_dialogue.isActive()) {
+            m_dialogue.advanceOrCompleteLine(&m_storyState);
+        } else {
+            // Also obtain the sketchbook flag, reply on the smartphone, and test Save/Load + Transition
+            m_storyState.setFlag("has_sketchbook", 1);
+            m_phoneSystem.setOpen(true);
+            m_phoneSystem.selectChoice(0, m_storyState);
+            m_storyState.saveToFile("data/saves/save_slot_1.sav", "classroom", m_player.getX(), m_player.getZ());
+
+            std::string loadedScene;
+            float lx = 0.0f, lz = 0.0f;
+            m_storyState.loadFromFile("data/saves/save_slot_1.sav", loadedScene, lx, lz);
+            m_transition.startTransition("SCHOOL HALLWAY - 3RD FLOOR", nullptr, 0.5f);
+            m_verifyStep = 3;
+        }
     }
 
     m_npcMaya.update(dt, m_player.getX(), m_player.getZ());
@@ -222,13 +237,11 @@ void ClassroomScene::drawDeskWithChair3D(
 
     woodTex.bind();
 
-    // Desk tabletop (VBO+EBO glDrawElements)
     glPushMatrix();
     glTranslatef(0.0f, 0.74f, 0.0f);
     m_meshDeskTop.drawVBOElements();
     glPopMatrix();
 
-    // 4 Desk legs (VBO glDrawArrays)
     const float lx = 0.54f;
     const float lz = 0.27f;
     const float legCoords[4][2] = {
@@ -242,7 +255,6 @@ void ClassroomScene::drawDeskWithChair3D(
         glPopMatrix();
     }
 
-    // Student Chair tucked slightly behind desk (+Z)
     glPushMatrix();
     glTranslatef(0.0f, 0.44f, 0.46f);
     m_meshChairSeat.drawVBOElements();
@@ -270,13 +282,11 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     const auto& deskTex  = m_useCheckerTexture ? m_texCheckerDebug : m_texDeskWood;
     const auto& boardTex = m_useCheckerTexture ? m_texCheckerDebug : m_texChalkboard;
 
-    // 1. Classroom Wood Floor (VBO + EBO glDrawElements)
     floorTex.bind();
     glPushMatrix();
     m_meshFloor.drawVBOElements();
     glPopMatrix();
 
-    // 2. Back Wall (VBO glDrawArrays) & Left/Right Walls (Module 4 Client-Side Vertex Arrays)
     wallTex.bind();
     glPushMatrix();
     glTranslatef(0.0f, 1.9f, -3.40f);
@@ -293,14 +303,12 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     m_meshSideWall.drawVBOArrays();
     glPopMatrix();
 
-    // 3. Front Chalkboard (Module 6 glArrayElement inside VBO)
     boardTex.bind();
     glPushMatrix();
     glTranslatef(0.0f, 1.95f, -3.22f);
     m_meshChalkboard.drawVBOArrayElement();
     glPopMatrix();
 
-    // 4. Right Wall Sliding Wooden Door to Hallway
     deskTex.bind();
     glPushMatrix();
     glTranslatef(4.44f, 1.18f, -1.65f);
@@ -308,34 +316,31 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     glPopMatrix();
     engine::assets::Texture2D::unbind();
 
-    // 5. Teacher's Desk + 6 Student Desks & Chairs
     drawDeskWithChair3D( 1.85f, -1.85f, 172.0f, deskTex);
-
     drawDeskWithChair3D(-1.85f,  0.05f,   0.0f, deskTex);
     drawDeskWithChair3D( 0.15f,  0.05f,   0.0f, deskTex);
     drawDeskWithChair3D( 2.15f,  0.05f,   0.0f, deskTex);
-
     drawDeskWithChair3D(-1.85f,  1.85f,   0.0f, deskTex);
     drawDeskWithChair3D( 0.15f,  1.85f,   0.0f, deskTex);
     drawDeskWithChair3D( 2.15f,  1.85f,   0.0f, deskTex);
 
-    // 6. Interactive Prop: Elijah's Sketchbook on Front-Left Desk (-1.85, 0.05)
-    glPushMatrix();
-    glTranslatef(-1.72f, 0.81f, 0.08f);
-    glRotatef(14.0f, 0.0f, 1.0f, 0.0f);
-    m_texCheckerDebug.bind();
-    m_meshSketchbookProp.drawVBOElements();
-    engine::assets::Texture2D::unbind();
-    glPopMatrix();
+    // Sketchbook prop on front-left desk (hidden once picked up!)
+    if (!m_storyState.hasFlag("has_sketchbook")) {
+        glPushMatrix();
+        glTranslatef(-1.72f, 0.81f, 0.08f);
+        glRotatef(14.0f, 0.0f, 1.0f, 0.0f);
+        m_texCheckerDebug.bind();
+        m_meshSketchbookProp.drawVBOElements();
+        engine::assets::Texture2D::unbind();
+        glPopMatrix();
+    }
 
-    // 7. Module 6 Mapped-VBO 3D Pyramid Prop on Center Desk (0.15, 0.05)
     glPushMatrix();
     glTranslatef(0.15f, 0.80f, 0.05f);
     glRotatef(m_timeSeconds * 38.0f, 0.0f, 1.0f, 0.0f);
     m_meshDynamicPyramid.drawVBOArrays();
     glPopMatrix();
 
-    // 8. Module 8 GLUT 3D Props on Teacher's Desk (Polished Ceramic Teapot & Globe Sphere)
     engine::renderer::LightingSystem::applyMaterial(
         engine::renderer::LightingSystem::polishedCeramicMaterial());
     glPushMatrix();
@@ -359,7 +364,6 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     }
     glPopMatrix();
 
-    // 9. Ceiling Lamp Fixture (Emissive Material)
     engine::renderer::LightingSystem::applyMaterial(
         engine::renderer::LightingSystem::glowingLampMaterial());
     glPushMatrix();
@@ -369,7 +373,6 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     glutSolidCone(0.22, 0.18, 16, 4);
     glPopMatrix();
 
-    // 10. Render 2.5D Characters (Depth-ordered by Z coordinate for clean alpha edges)
     engine::renderer::LightingSystem::applyMaterial(
         engine::renderer::LightingSystem::matteWoodMaterial());
     if (m_npcMaya.getZ() < m_player.getZ()) {
@@ -380,10 +383,7 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
         m_npcMaya.render(camera.getYawDegrees(), m_showDebugOverlay);
     }
 
-    // 11. Render 3D Interaction Indicators (Bobbing Amber Diamond + Stippled Ring)
     m_interactions.render3DIndicators(m_timeSeconds, m_showDebugOverlay);
-
-    // 12. Atmospheric Dust Motes (Module 2 GL_POINTS) & Sunset Windows
     engine::renderer::PrimitiveRenderer::drawDustParticles(m_timeSeconds, 34);
 
     m_texWindowGlass.bind();
@@ -398,7 +398,6 @@ void ClassroomScene::render3D(const engine::camera::Camera3D& camera) {
     glPopMatrix();
     engine::assets::Texture2D::unbind();
 
-    // 13. Debug Overlay (F3): Reference Grid, Axes, Stippled AABB Colliders & Module 2 Showcase
     if (m_showDebugOverlay) {
         engine::renderer::PrimitiveRenderer::drawReferenceGrid(4.5f, 0.75f);
         engine::renderer::PrimitiveRenderer::drawCoordinateAxes(1.5f);
@@ -413,8 +412,8 @@ void ClassroomScene::render2D(const engine::camera::Camera3D& camera) {
 
     engine::camera::Camera3D::begin2DOverlay(w, h);
 
-    // Top-left Scene & Objective HUD Panel
-    engine::ui::TextRenderer::drawPanel2D(16.0f, static_cast<float>(h - 172), 560.0f, 156.0f);
+    // Top-left Narrative & Controls HUD Panel
+    engine::ui::TextRenderer::drawPanel2D(16.0f, static_cast<float>(h - 175), 595.0f, 158.0f);
 
     engine::ui::TextRenderer::drawStrokeText2D(
         30.0f, static_cast<float>(h - 44),
@@ -422,58 +421,120 @@ void ClassroomScene::render2D(const engine::camera::Camera3D& camera) {
         0.13f, 2.0f, GLUT_STROKE_ROMAN,
         1.0f, 0.86f, 0.48f);
 
-    std::ostringstream statusLine;
-    statusLine << std::fixed << std::setprecision(2)
-               << "Elijah Pos: (" << m_player.getX() << ", " << m_player.getZ() << ")"
-               << " | Interactions: " << m_interactions.getTotalInteractionsTriggered()
-               << " | Dialogues Completed: " << m_dialogue.getCompletedDialoguesCount();
+    std::ostringstream flagsLine;
+    flagsLine << "Story Flags: Sketchbook=" << (m_storyState.hasFlag("has_sketchbook") ? "YES" : "NO")
+              << " | MayaTalk=" << (m_storyState.hasFlag("talked_to_maya") ? "YES" : "NO")
+              << " | PhoneSam=" << (m_storyState.hasFlag("replied_phone_sam") ? "YES" : "NO")
+              << " | Hallway=" << (m_storyState.hasFlag("hallway_unlocked") ? "OPEN" : "LOCKED");
     engine::ui::TextRenderer::drawBitmapText2D(
         30.0f, static_cast<float>(h - 70),
-        statusLine.str(), GLUT_BITMAP_HELVETICA_12, 0.92f, 0.98f, 0.88f);
+        flagsLine.str(), GLUT_BITMAP_HELVETICA_12, 0.92f, 0.98f, 0.88f);
 
-    const auto* nearObj = m_interactions.getActiveInteractable();
-    std::string targetText = nearObj ? nearObj->displayName : "None (Walk near Maya, Sketchbook, Chalkboard, Window, or Door)";
     engine::ui::TextRenderer::drawBitmapText2D(
         30.0f, static_cast<float>(h - 92),
-        "Nearby Target: " + targetText,
-        GLUT_BITMAP_HELVETICA_12, 1.0f, 0.86f, 0.55f);
+        m_storyState.getCurrentObjectiveText(),
+        GLUT_BITMAP_HELVETICA_12, 1.0f, 0.88f, 0.50f);
 
     engine::ui::TextRenderer::drawBitmapText2D(
         30.0f, static_cast<float>(h - 114),
-        "Controls: WASD/Arrows Move | [E]/[Enter] Interact & Advance Dialogue | [C] Cam Mode",
+        "Controls: WASD/Arrows Move | [E] Interact | [1/2] Dialogue/Phone Choice | [Tab] Phone",
         GLUT_BITMAP_HELVETICA_12, 0.80f, 0.88f, 0.96f);
 
     engine::ui::TextRenderer::drawBitmapText2D(
         30.0f, static_cast<float>(h - 136),
-        "OpenGL Keys: [P] Projection | [1-4] Phong Lights | [F3] Debug Colliders | [T] UV Checker",
-        GLUT_BITMAP_HELVETICA_12, 0.76f, 0.84f, 0.78f);
+        "Save/Load: [F5] Quick Save | [F9] Quick Load | [P] Projection | [F3] Debug Overlay",
+        GLUT_BITMAP_HELVETICA_12, 0.76f, 0.86f, 0.80f);
 
-    engine::ui::TextRenderer::drawBitmapText2D(
-        30.0f, static_cast<float>(h - 158),
-        "Objective: Talk to Maya by the window and inspect your Sketchbook on the front-left desk.",
-        GLUT_BITMAP_9_BY_15, 0.68f, 0.95f, 0.82f);
+    if (m_storyState.hasActiveToast()) {
+        engine::ui::TextRenderer::drawBitmapText2D(
+            30.0f, static_cast<float>(h - 158),
+            ">> " + m_storyState.getToastMessage(),
+            GLUT_BITMAP_9_BY_15, 0.55f, 1.0f, 0.75f);
+    } else {
+        const auto* nearObj = m_interactions.getActiveInteractable();
+        std::string targetText = nearObj ? nearObj->displayName : "Walk near Maya, Sketchbook, Chalkboard, Window, or Door";
+        engine::ui::TextRenderer::drawBitmapText2D(
+            30.0f, static_cast<float>(h - 158),
+            "Nearby: " + targetText,
+            GLUT_BITMAP_9_BY_15, 0.68f, 0.92f, 0.85f);
+    }
 
-    // Render either the active Dialogue Box OR the Proximity Interaction Prompt
+    // Smartphone notification pill & handset UI
+    m_phoneSystem.render2D(w, h, m_storyState);
+
+    // Active Dialogue Box OR Proximity Prompt
     if (m_dialogue.isActive()) {
         m_dialogue.render2D(w, h);
-    } else {
+    } else if (!m_phoneSystem.isOpen()) {
         m_interactions.render2DPrompt(w, h);
     }
+
+    // Cinematic Scene Transition Overlay
+    m_transition.render2D(w, h);
 
     engine::camera::Camera3D::end2DOverlay();
 }
 
 void ClassroomScene::onKeyPress(unsigned char key) {
+    if (m_transition.isActive()) {
+        return;
+    }
+
+    // Toggle Smartphone with Tab (ASCII 9) or 'b'/'B'
+    if (key == 9 || key == 'b' || key == 'B') {
+        if (!m_dialogue.isActive()) {
+            m_phoneSystem.toggleOpen();
+            return;
+        }
+    }
+
+    // When Smartphone is open, handle [1], [2], and [N] thread switching
+    if (m_phoneSystem.isOpen()) {
+        if (key == '1') {
+            m_phoneSystem.selectChoice(0, m_storyState);
+        } else if (key == '2') {
+            m_phoneSystem.selectChoice(1, m_storyState);
+        } else if (key == 'n' || key == 'N') {
+            m_phoneSystem.selectNextThread();
+        }
+        return;
+    }
+
+    // When Dialogue is waiting for a branching choice, allow [1] / [2] selection
+    if (m_dialogue.isActive() && m_dialogue.isWaitingForChoice()) {
+        if (key == '1') {
+            m_dialogue.selectChoice(0, &m_storyState);
+            return;
+        } else if (key == '2') {
+            m_dialogue.selectChoice(1, &m_storyState);
+            return;
+        }
+    }
+
     if (key == 'e' || key == 'E' || key == 13 || key == ' ') {
         if (m_dialogue.isActive()) {
-            m_dialogue.advanceOrCompleteLine();
+            m_dialogue.advanceOrCompleteLine(&m_storyState);
             return;
         }
         if (key == 'e' || key == 'E' || key == 13) {
             auto* activeObj = m_interactions.getActiveInteractableMutable();
             if (activeObj) {
                 m_interactions.incrementInteractionCount(activeObj);
-                m_dialogue.startDialogue(activeObj->dialogueNodeId);
+                if (activeObj->id == "classroom_door") {
+                    if (m_storyState.hasFlag("hallway_unlocked")) {
+                        m_dialogue.startDialogue("inspect_door_unlocked");
+                        m_transition.startTransition(
+                            "SCHOOL HALLWAY - 3RD FLOOR",
+                            [this]() {
+                                m_player.setPosition(3.5f, 0.0f, -1.6f);
+                            },
+                            1.4f);
+                    } else {
+                        m_dialogue.startDialogue("inspect_door_locked");
+                    }
+                } else {
+                    m_dialogue.startDialogue(activeObj->dialogueNodeId);
+                }
             }
         }
     } else if (key == 't' || key == 'T') {
@@ -494,15 +555,43 @@ void ClassroomScene::onKeyPress(unsigned char key) {
 }
 
 void ClassroomScene::onSpecialKeyPress(int key) {
+    if (m_dialogue.isActive() && m_dialogue.isWaitingForChoice()) {
+        if (key == GLUT_KEY_UP) {
+            m_dialogue.moveChoiceCursor(-1);
+            return;
+        } else if (key == GLUT_KEY_DOWN) {
+            m_dialogue.moveChoiceCursor(1);
+            return;
+        }
+    }
+
     if (key == GLUT_KEY_F3) {
         m_showDebugOverlay = !m_showDebugOverlay;
+    } else if (key == GLUT_KEY_F5) {
+        m_storyState.saveToFile(
+            "data/saves/save_slot_1.sav",
+            "classroom",
+            m_player.getX(),
+            m_player.getZ());
+    } else if (key == GLUT_KEY_F9) {
+        std::string sceneId;
+        float px = m_player.getX();
+        float pz = m_player.getZ();
+        if (m_storyState.loadFromFile("data/saves/save_slot_1.sav", sceneId, px, pz)) {
+            m_transition.startTransition(
+                "LOADING SAVE SLOT 1...",
+                [this, px, pz]() {
+                    m_player.setPosition(px, 0.0f, pz);
+                },
+                1.0f);
+        }
     }
 }
 
 void ClassroomScene::onMouseClick(int button, int state) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         if (m_dialogue.isActive()) {
-            m_dialogue.advanceOrCompleteLine();
+            m_dialogue.advanceOrCompleteLine(&m_storyState);
         }
     }
 }
