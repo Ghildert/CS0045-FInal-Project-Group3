@@ -1,0 +1,50 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake: Configure & Build (MSYS2 UCRT64)",
+            "type": "shell",
+            "command": "C:/msys64/ucrt64/bin/cmake.exe -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && C:/msys64/ucrt64/bin/cmake.exe --build build",
+            "options": {
+                "env": {
+                    "PATH": "C:\\msys64\\ucrt64\\bin;${env:PATH}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build OpenGL Program (Active File)",
+            "type": "shell",
+            "command": "C:/msys64/ucrt64/bin/g++.exe",
+            "args": [
+                "-std=c++17",
+                "-DGLEW_STATIC",
+                "-I${workspaceFolder}/src",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "-lglew32",
+                "-lfreeglut",
+                "-lglu32",
+                "-lopengl32",
+                "-lgdi32",
+                "-lwinmm"
+            ],
+            "options": {
+                "env": {
+                    "PATH": "C:\\msys64\\ucrt64\\bin;${env:PATH}"
+                }
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
