@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EchoesOfNovember VERSION 0.2.0 LANGUAGES CXX)
+project(EchoesOfNovember VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,16 +21,24 @@ set(ENGINE_SOURCES
     src/engine/core/Math4x4.cpp
     src/engine/input/InputManager.cpp
     src/engine/assets/Texture2D.cpp
+    src/engine/animation/SpriteAnimator.cpp
     src/engine/renderer/PrimitiveRenderer.cpp
     src/engine/renderer/MeshVBO.cpp
+    src/engine/renderer/SpriteQuad3D.cpp
     src/engine/renderer/LightingSystem.cpp
+    src/engine/collision/CollisionSystem.cpp
     src/engine/camera/Camera3D.cpp
     src/engine/ui/TextRenderer.cpp
+)
+
+set(GAME_SOURCES
+    src/game/player/PlayerController.cpp
 )
 
 add_executable(NarrativeGame
     src/main.cpp
     ${ENGINE_SOURCES}
+    ${GAME_SOURCES}
 )
 
 if(MINGW)

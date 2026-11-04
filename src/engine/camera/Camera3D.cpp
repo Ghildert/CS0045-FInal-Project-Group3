@@ -12,7 +12,7 @@ Camera3D::Camera3D()
     : m_viewportWidth(1280)
     , m_viewportHeight(720)
     , m_projMode(ProjectionMode::PerspectiveGLU)
-    , m_freeCamera(true)
+    , m_freeCamera(false)
     , m_fovDegrees(42.0f)
     , m_nearPlane(0.1f)
     , m_farPlane(100.0f)
@@ -123,21 +123,23 @@ void Camera3D::updateFreeOrbit(float dt) {
     const float orbitSpeed = 65.0f * dt;
     const float zoomSpeed  = 4.5f * dt;
 
-    // Arrow keys orbit camera yaw and pitch
-    if (InputManager::isSpecialDown(GLUT_KEY_LEFT)) {
-        m_yawDegrees -= orbitSpeed;
-    }
-    if (InputManager::isSpecialDown(GLUT_KEY_RIGHT)) {
-        m_yawDegrees += orbitSpeed;
-    }
-    if (InputManager::isSpecialDown(GLUT_KEY_UP)) {
-        m_pitchDegrees += orbitSpeed * 0.7f;
-    }
-    if (InputManager::isSpecialDown(GLUT_KEY_DOWN)) {
-        m_pitchDegrees -= orbitSpeed * 0.7f;
+    // In Free Camera mode, Arrow keys orbit camera yaw and pitch
+    if (m_freeCamera) {
+        if (InputManager::isSpecialDown(GLUT_KEY_LEFT)) {
+            m_yawDegrees -= orbitSpeed;
+        }
+        if (InputManager::isSpecialDown(GLUT_KEY_RIGHT)) {
+            m_yawDegrees += orbitSpeed;
+        }
+        if (InputManager::isSpecialDown(GLUT_KEY_UP)) {
+            m_pitchDegrees += orbitSpeed * 0.7f;
+        }
+        if (InputManager::isSpecialDown(GLUT_KEY_DOWN)) {
+            m_pitchDegrees -= orbitSpeed * 0.7f;
+        }
     }
 
-    // Right mouse drag also orbits camera smoothly
+    // Right mouse drag orbits camera smoothly in any mode
     if (InputManager::isMouseButtonDown(GLUT_RIGHT_BUTTON)) {
         m_yawDegrees   -= static_cast<float>(InputManager::getMouseDeltaX()) * 0.35f;
         m_pitchDegrees += static_cast<float>(InputManager::getMouseDeltaY()) * 0.25f;
@@ -146,14 +148,15 @@ void Camera3D::updateFreeOrbit(float dt) {
     if (m_pitchDegrees < 3.0f)  m_pitchDegrees = 3.0f;
     if (m_pitchDegrees > 75.0f) m_pitchDegrees = 75.0f;
 
-    // WASD pans target in free camera mode; Q/E zooms in/out
+    // Q/E zooms in/out in any mode; WASD pans target only in free camera mode
+    if (InputManager::isKeyDown('q')) m_distance -= zoomSpeed;
+    if (InputManager::isKeyDown('e')) m_distance += zoomSpeed;
+
     if (m_freeCamera) {
         if (InputManager::isKeyDown('a')) m_targetX -= panSpeed;
         if (InputManager::isKeyDown('d')) m_targetX += panSpeed;
         if (InputManager::isKeyDown('w')) m_targetZ -= panSpeed;
         if (InputManager::isKeyDown('s')) m_targetZ += panSpeed;
-        if (InputManager::isKeyDown('q')) m_distance -= zoomSpeed;
-        if (InputManager::isKeyDown('e')) m_distance += zoomSpeed;
     }
 
     if (m_distance < 2.2f)  m_distance = 2.2f;

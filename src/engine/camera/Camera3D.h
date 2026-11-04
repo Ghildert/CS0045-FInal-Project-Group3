@@ -47,6 +47,7 @@ public:
     float getTargetX() const { return m_targetX; }
     float getTargetY() const { return m_targetY; }
     float getTargetZ() const { return m_targetZ; }
+    float getYawDegrees() const { return m_yawDegrees; }
     int getViewportWidth() const { return m_viewportWidth; }
     int getViewportHeight() const { return m_viewportHeight; }
 

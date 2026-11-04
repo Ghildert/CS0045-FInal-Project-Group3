@@ -255,6 +255,156 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
         }
         writePNGIfMissing("assets/textures/checker_debug.png", W, H, img);
     }
+
+    // Helper lambda to paint a 4x2 (128x96) character sprite sheet (each frame 32x48)
+    // Row 0 = 4 Idle frames (subtle breathing + blink on frame 3)
+    // Row 1 = 4 Walk frames (swinging arms + alternating stepping legs + walk bob)
+    auto generateCharacterSheet = [](const std::string& outPath,
+                                     unsigned char hairR, unsigned char hairG, unsigned char hairB,
+                                     unsigned char vestR, unsigned char vestG, unsigned char vestB,
+                                     unsigned char tieR,  unsigned char tieG,  unsigned char tieB,
+                                     bool longHair) {
+        const int cellW = 32;
+        const int cellH = 48;
+        const int cols  = 4;
+        const int rows  = 2;
+        const int sheetW = cellW * cols; // 128
+        const int sheetH = cellH * rows; // 96
+
+        std::vector<unsigned char> sheet(sheetW * sheetH * 4, 0);
+
+        auto putPx = [&](int px, int py, unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255) {
+            if (px < 0 || px >= sheetW || py < 0 || py >= sheetH) return;
+            int idx = (py * sheetW + px) * 4;
+            sheet[idx + 0] = r;
+            sheet[idx + 1] = g;
+            sheet[idx + 2] = b;
+            sheet[idx + 3] = a;
+        };
+
+        auto fillRect = [&](int x0, int y0, int w, int h,
+                            unsigned char r, unsigned char g, unsigned char b) {
+            for (int dy = 0; dy < h; ++dy) {
+                for (int dx = 0; dx < w; ++dx) {
+                    putPx(x0 + dx, y0 + dy, r, g, b, 255);
+                }
+            }
+        };
+
+        for (int row = 0; row < rows; ++row) {
+            for (int col = 0; col < cols; ++col) {
+                int ox = col * cellW;
+                int oy = row * cellH;
+
+                bool isWalk = (row == 1);
+                int bobY = 0;
+                if (!isWalk) {
+                    bobY = (col == 1 || col == 2) ? 1 : 0; // Gentle idle breathing
+                } else {
+                    bobY = (col % 2 == 1) ? -1 : 0;        // Walk bounce
+                }
+
+                // Leg offsets for walk cycle
+                int leftLegY  = 0;
+                int rightLegY = 0;
+                int leftLegX  = 0;
+                int rightLegX = 0;
+                int leftArmY  = 0;
+                int rightArmY = 0;
+
+                if (isWalk) {
+                    if (col == 0) { leftLegX = -1; rightLegX =  1; leftLegY = -2; rightArmY = -2; leftArmY =  1; }
+                    if (col == 1) { leftLegX =  0; rightLegX =  0; leftLegY =  0; rightArmY =  0; leftArmY =  0; }
+                    if (col == 2) { leftLegX =  1; rightLegX = -1; rightLegY = -2; leftArmY = -2; rightArmY = 1; }
+                    if (col == 3) { leftLegX =  0; rightLegX =  0; rightLegY =  0; leftArmY =  0; rightArmY = 0; }
+                }
+
+                // 1. Legs & Shoes (y: 33..45)
+                // Left leg
+                fillRect(ox + 11 + leftLegX, oy + 33 + leftLegY, 4, 10, 42, 46, 62);
+                fillRect(ox + 10 + leftLegX, oy + 43 + leftLegY, 5, 3,  28, 24, 24);
+                // Right leg
+                fillRect(ox + 17 + rightLegX, oy + 33 + rightLegY, 4, 10, 36, 40, 54);
+                fillRect(ox + 17 + rightLegX, oy + 43 + rightLegY, 5, 3,  28, 24, 24);
+
+                // 2. Torso / School Shirt & Vest (y: 20..33)
+                int ty = oy + 20 + bobY;
+                // Dark outline around torso
+                fillRect(ox + 9,  ty - 1, 14, 15, 24, 22, 30);
+                // White inner collar shirt
+                fillRect(ox + 10, ty,     12, 13, 242, 240, 235);
+                // Colored school vest/cardigan overlay
+                fillRect(ox + 10, ty + 2, 12, 11, vestR, vestG, vestB);
+                // Center shirt V-neck & tie/lanyard
+                fillRect(ox + 14, ty,     4,  4,  242, 240, 235);
+                fillRect(ox + 15, ty + 2, 2,  8,  tieR, tieG, tieB);
+
+                // 3. Left & Right Arms (with white sleeve cuffs & warm hands)
+                int ayL = ty + 1 + leftArmY;
+                int ayR = ty + 1 + rightArmY;
+                // Left arm
+                fillRect(ox + 6,  ayL,     3, 9,  vestR, vestG, vestB);
+                fillRect(ox + 6,  ayL + 7, 3, 2,  240, 238, 232);
+                fillRect(ox + 6,  ayL + 9, 3, 3,  242, 198, 165);
+                // Right arm
+                fillRect(ox + 23, ayR,     3, 9,  vestR, vestG, vestB);
+                fillRect(ox + 23, ayR + 7, 3, 2,  240, 238, 232);
+                fillRect(ox + 23, ayR + 9, 3, 3,  242, 198, 165);
+
+                // 4. Head, Face & Hair (y: 6..20)
+                int hy = oy + 6 + bobY;
+                // Long back hair if applicable
+                if (longHair) {
+                    fillRect(ox + 8, hy + 6, 16, 12, hairR, hairG, hairB);
+                }
+                // Head dark outline
+                fillRect(ox + 9,  hy,     14, 14, 24, 22, 30);
+                // Warm skin face
+                fillRect(ox + 10, hy + 2, 12, 11, 245, 204, 172);
+                // Subtle warm cheek blush
+                putPx(ox + 11, hy + 9, 238, 155, 142);
+                putPx(ox + 20, hy + 9, 238, 155, 142);
+
+                // Eyes (blink on Idle frame 3)
+                bool blink = (!isWalk && col == 3);
+                if (blink) {
+                    fillRect(ox + 12, hy + 7, 2, 1, 35, 28, 32);
+                    fillRect(ox + 18, hy + 7, 2, 1, 35, 28, 32);
+                } else {
+                    fillRect(ox + 12, hy + 6, 2, 3, 32, 28, 36);
+                    fillRect(ox + 18, hy + 6, 2, 3, 32, 28, 36);
+                    // Eye specular highlight pixel
+                    putPx(ox + 12, hy + 6, 250, 250, 255);
+                    putPx(ox + 18, hy + 6, 250, 250, 255);
+                }
+
+                // Hair crown and bangs
+                fillRect(ox + 9,  hy - 1, 14, 5, hairR, hairG, hairB);
+                fillRect(ox + 9,  hy + 3, 3,  5, hairR, hairG, hairB);
+                fillRect(ox + 20, hy + 3, 3,  5, hairR, hairG, hairB);
+                fillRect(ox + 13, hy + 3, 2,  2, hairR, hairG, hairB);
+                fillRect(ox + 17, hy + 3, 2,  2, hairR, hairG, hairB);
+            }
+        }
+
+        writePNGIfMissing(outPath, sheetW, sheetH, sheet);
+    };
+
+    // 7. Protagonist "Elijah" Sprite Sheet (navy-slate school vest, crimson tie, dark espresso hair)
+    generateCharacterSheet(
+        "assets/sprites/player_elijah_sheet.png",
+        38, 32, 42,    // Hair
+        58, 78, 112,   // School vest
+        195, 62, 58,   // Tie
+        false);
+
+    // 8. Classmate "Maya" Sprite Sheet (warm amber cardigan, teal ribbon, chestnut long hair)
+    generateCharacterSheet(
+        "assets/sprites/npc_maya_sheet.png",
+        78, 46, 38,    // Hair
+        198, 138, 72,  // Cardigan
+        52, 138, 132,  // Ribbon
+        true);
 }
 
 } // namespace assets

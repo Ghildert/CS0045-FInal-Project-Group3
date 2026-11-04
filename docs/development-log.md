@@ -62,3 +62,29 @@
   - Loaded all 6 PNG textures via `stbi_load`.
   - Created and rendered VBOs, EBOs, client-side vertex arrays, and mapped-buffer $4 \times 4$ transformations.
   - Verified `GL Errors = 0`.
+
+
+---
+
+## Phase 2 — 2.5D Character Prototype (2026-11-05)
+
+### Completed Subsystems
+1. **Pixel-Art Character Sprite-Sheet Generator (`src/engine/assets/Texture2D.cpp`):**
+   - Generates original 4x2 (128x96, eight 32x48 frames) pixel-art character sprite sheets in `assets/sprites/player_elijah_sheet.png` and `assets/sprites/npc_maya_sheet.png` (Row 0 = 4-frame Idle breathing/blinking animation; Row 1 = 4-frame Walk cycle with swinging arms and stepping legs).
+2. **Sprite-Sheet Animator (`src/engine/animation/SpriteAnimator.h`, `SpriteAnimator.cpp`):**
+   - Tracks `AnimState::Idle` and `AnimState::Walk`, advances frame timers, handles horizontal UV flipping for Left/Right orientation, and computes normalized `UVRect` sub-rectangles.
+3. **2.5D Character Quad & Grounded Contact Shadow (`src/engine/renderer/SpriteQuad3D.h`, `SpriteQuad3D.cpp`):**
+   - Renders a dynamic-VBO character quad (`GL_DYNAMIC_DRAW`) in 3D space with per-frame UV updates via `glBufferSubData` (Module 6).
+   - Uses `GL_ALPHA_TEST` (`glAlphaFunc(GL_GREATER, 0.1f)`) and `GL_BLEND` (`GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`) with `GL_NEAREST` pixel-art filtering so sprites have crisp edges and participate accurately in 3D depth sorting and Phong lighting.
+   - Renders a grounded contact shadow ellipse underneath the character using `GL_TRIANGLE_FAN` (Module 2).
+4. **3D AABB Collision & Sliding Resolution (`src/engine/collision/CollisionSystem.h`, `CollisionSystem.cpp`):**
+   - Implements `AABB3D` and `CollisionWorld::resolveMovementXZ` with axis-separated X and Z collision checks so the player slides smoothly along room walls and classroom desks.
+   - Renders stippled wireframe collider boxes (`glLineStipple`, Module 2) when `F3` Debug Mode is active, highlighting contacted colliders in bright red.
+5. **Player Controller & 2.5D Camera Follow (`src/game/player/PlayerController.h`, `PlayerController.cpp`, `src/engine/camera/Camera3D.cpp`):**
+   - Supports `WASD` and Arrow-key movement in 3D space, directional sprite flipping, walk/idle state transitions, and smooth 2.5D camera tracking (`Camera3D::setNarrativeTarget`), with `[C]` toggling between 2.5D Narrative Follow Camera and Free-Orbit Camera.
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase2`:
+  - Verified loading `assets/sprites/player_elijah_sheet.png` (`128x96`, `id=7`).
+  - Verified walk cycle UV updates, camera follow, and sliding collision resolution against `StudentDesk_FrontLeft` with `GL Errors = 0`.
