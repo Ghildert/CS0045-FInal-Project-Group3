@@ -148,11 +148,10 @@ void Camera3D::updateFreeOrbit(float dt) {
     if (m_pitchDegrees < 3.0f)  m_pitchDegrees = 3.0f;
     if (m_pitchDegrees > 75.0f) m_pitchDegrees = 75.0f;
 
-    // Q/E zooms in/out in any mode; WASD pans target only in free camera mode
-    if (InputManager::isKeyDown('q')) m_distance -= zoomSpeed;
-    if (InputManager::isKeyDown('e')) m_distance += zoomSpeed;
-
+    // Q/E zoom and WASD target pan only when Free Camera mode [C] is active
     if (m_freeCamera) {
+        if (InputManager::isKeyDown('q') || InputManager::isKeyDown('=')) m_distance -= zoomSpeed;
+        if (InputManager::isKeyDown('e') || InputManager::isKeyDown('-')) m_distance += zoomSpeed;
         if (InputManager::isKeyDown('a')) m_targetX -= panSpeed;
         if (InputManager::isKeyDown('d')) m_targetX += panSpeed;
         if (InputManager::isKeyDown('w')) m_targetZ -= panSpeed;
