@@ -13,9 +13,16 @@
 #include "game/dialogue/DialogueSystem.h"
 #include "game/narrative/StoryState.h"
 #include "game/narrative/PhoneSystem.h"
+#include <string>
 
 namespace game {
 namespace scenes {
+
+enum class LocationId {
+    Classroom   = 0, // Room 304 (Late Afternoon)
+    Hallway     = 1, // 3rd-Floor School Corridor
+    RainyStreet = 2  // 24/7 Sundown Mart & Bus Stop Exterior
+};
 
 class ClassroomScene {
 public:
@@ -25,6 +32,11 @@ public:
     void init();
     void destroy();
 
+    void switchLocation(LocationId targetLocation, float spawnX, float spawnZ, bool withTransition = true);
+    LocationId getCurrentLocation() const { return m_currentLocation; }
+    std::string getCurrentLocationIdString() const;
+    std::string getCurrentLocationTitle() const;
+
     void update(float dt, engine::camera::Camera3D& camera);
     void render3D(const engine::camera::Camera3D& camera);
     void render2D(const engine::camera::Camera3D& camera);
@@ -33,35 +45,46 @@ public:
     void onSpecialKeyPress(int key);
     void onMouseClick(int button, int state);
 
-    // Automated Phase 3/4 verification helper
-    void runPhase4VerificationStep(float dt, engine::camera::Camera3D& camera);
+    // Automated Phase 5 multi-location verification helper
+    void runPhase5VerificationStep(float dt, engine::camera::Camera3D& camera);
 
     bool isValid() const;
     const player::PlayerController& getPlayer() const { return m_player; }
     const characters::NPCCharacter& getMayaNPC() const { return m_npcMaya; }
+    const characters::NPCCharacter& getSamNPC() const { return m_npcSam; }
     const interactions::InteractionManager& getInteractions() const { return m_interactions; }
     const dialogue::DialogueSystem& getDialogue() const { return m_dialogue; }
     const narrative::StoryState& getStoryState() const { return m_storyState; }
     const narrative::PhoneSystem& getPhoneSystem() const { return m_phoneSystem; }
     engine::renderer::LightingSystem& getLighting() { return m_lighting; }
+    int getLocationsVisitedCount() const { return m_locationsVisitedMask; }
 
 private:
-    void buildCollidersAndInteractables();
+    void buildCollidersAndInteractablesForLocation(LocationId loc);
+    void renderClassroom3D(const engine::camera::Camera3D& camera);
+    void renderHallway3D(const engine::camera::Camera3D& camera);
+    void renderRainyStreet3D(const engine::camera::Camera3D& camera);
     void drawDeskWithChair3D(float x, float z, float yawDegrees, const engine::assets::Texture2D& woodTex);
 
+    LocationId                        m_currentLocation;
+    int                               m_locationsVisitedMask;
     engine::renderer::LightingSystem  m_lighting;
     engine::collision::CollisionWorld m_collisionWorld;
     engine::scene::SceneTransition    m_transition;
 
-    // Classroom Textures
+    // Shared Environment Textures (Module 8 Subtopic 2)
     engine::assets::Texture2D m_texWoodFloor;
     engine::assets::Texture2D m_texClassroomWall;
     engine::assets::Texture2D m_texDeskWood;
     engine::assets::Texture2D m_texChalkboard;
     engine::assets::Texture2D m_texWindowGlass;
     engine::assets::Texture2D m_texCheckerDebug;
+    engine::assets::Texture2D m_texHallwayTile;
+    engine::assets::Texture2D m_texSchoolLockers;
+    engine::assets::Texture2D m_texWetAsphalt;
+    engine::assets::Texture2D m_texStorefrontNeon;
 
-    // Classroom VBO Geometry
+    // Reusable VBO Geometry (Modules 4, 5, 6)
     engine::renderer::MeshVBO m_meshFloor;
     engine::renderer::MeshVBO m_meshBackWall;
     engine::renderer::MeshVBO m_meshSideWall;
@@ -73,11 +96,15 @@ private:
     engine::renderer::MeshVBO m_meshChairSeat;
     engine::renderer::MeshVBO m_meshChairBack;
     engine::renderer::MeshVBO m_meshSketchbookProp;
+    engine::renderer::MeshVBO m_meshLockerBank;
+    engine::renderer::MeshVBO m_meshStoreBuilding;
+    engine::renderer::MeshVBO m_meshStoreAwning;
     engine::renderer::MeshVBO m_meshDynamicPyramid;
 
     // Gameplay Entities & Narrative Systems
     player::PlayerController         m_player;
     characters::NPCCharacter         m_npcMaya;
+    characters::NPCCharacter         m_npcSam;
     interactions::InteractionManager m_interactions;
     dialogue::DialogueSystem         m_dialogue;
     narrative::StoryState            m_storyState;

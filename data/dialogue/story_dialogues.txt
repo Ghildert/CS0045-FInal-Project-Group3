@@ -1,4 +1,4 @@
-# Echoes of November - External Branching Narrative Data
+# Echoes of November - External Branching Narrative Data (Locations 1-3)
 # Format:
 # NODE|node_id|completion_flag_key|completion_flag_val
 # LINE|speaker|dialogue_text
@@ -7,8 +7,8 @@
 NODE|maya_classroom_talk|talked_to_maya|1
 LINE|Maya|Still here, Elijah? Everyone else rushed out as soon as the last bell rang.
 LINE|Elijah|I was finishing the perspective study for Prof. Reyes. The sunset light is finally right.
-LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting on the rooftop before the rain starts.
-CHOICE|I'll head up right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1
+LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting outside before the storm hits.
+CHOICE|I'll head out right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1
 CHOICE|Have you felt like this week is repeating itself?|maya_branch_dejavu|asked_maya_dejavu|1
 
 NODE|maya_branch_promise|talked_to_maya|1
@@ -22,7 +22,7 @@ LINE|Maya|Check your sketchbook on the front-left desk—I think you wrote somet
 
 NODE|inspect_sketchbook|has_sketchbook|1
 LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.
-LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Don't miss the rooftop rehearsal at 5:00 PM.'
+LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'
 LINE|System|[Obtained Sketchbook & Chords — Flag 'has_sketchbook' = 1]
 
 NODE|inspect_chalkboard|read_chalkboard|1
@@ -38,4 +38,46 @@ LINE|Elijah|The sliding wooden door to the third-floor school hallway.
 LINE|Elijah|I should grab my Sketchbook from the front-left desk and talk to Maya before heading out.
 
 NODE|inspect_door_unlocked|entered_hallway_transition|1
-LINE|Elijah|I've got my sketchbook and checked in with Maya. Time to step out into the hallway.
+LINE|Elijah|I've got my sketchbook and checked in with Maya. Stepping out into the 3rd-Floor School Hallway.
+
+NODE|sam_hallway_talk|talked_to_sam|1
+LINE|Sam|There you are, Elijah! Did you bring the chord progression from Room 304?
+LINE|Elijah|Got it right here in my sketchbook. Why are we packing up by the lockers?
+LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to Sundown Mart.
+CHOICE|Let's practice under the convenience store awning.|sam_branch_awning|street_unlocked|1
+CHOICE|Want to test the rhythm timing right here first?|sam_branch_rhythm|street_unlocked|1
+
+NODE|sam_branch_awning|street_unlocked|1
+LINE|Elijah|The neon canopy outside Sundown Mart is dry and has benches. Let's meet Maya down on the street.
+LINE|Sam|Good call! Take the stairwell exit on the right end of the corridor whenever you're ready.
+
+NODE|sam_branch_rhythm|street_unlocked|1
+LINE|Sam|Haha, I like your energy! Let's head down to the street exit on the right so Maya doesn't wait in the rain.
+
+NODE|inspect_lockers|inspected_lockers|1
+LINE|Elijah|Row of steel-blue student lockers. Locker 314 has a faded sticker from last year's Cultural Festival.
+
+NODE|inspect_noticeboard|inspected_noticeboard|1
+LINE|Noticeboard|Campus Announcement: 'Annual Acoustic Night — Friday 6:00 PM. All student bands report for soundcheck.'
+
+NODE|inspect_stairs_locked||0
+LINE|Elijah|The stairwell leading down to the street. I should check in with Sam by the lockers first.
+
+NODE|maya_street_talk|talked_to_maya_street|1
+LINE|Maya|You made it! Listen to the rain hitting the convenience store awning...
+LINE|Elijah|The neon reflection on the wet asphalt looks just like the sketch I drew this afternoon.
+LINE|Maya|Sam left his acoustic guitar by the bus-stop bench so you could run through the melody!
+CHOICE|Let's play the acoustic rhythm song together! [Start Minigame]|maya_street_ready|ready_for_minigame|1
+CHOICE|Let me grab a warm drink from Sundown Mart first.|maya_street_drink|checked_storefront|1
+
+NODE|maya_street_ready|ready_for_minigame|1
+LINE|Maya|Interact with the Acoustic Guitar Case on the bench (or press [G]) when you're ready to play!
+
+NODE|maya_street_drink|checked_storefront|1
+LINE|Maya|Get me a warm ginger tea too! Then inspect the Guitar Case on the bench when you're ready to play.
+
+NODE|inspect_storefront|checked_storefront|1
+LINE|Elijah|24/7 Sundown Mart. Warm fluorescent light glows through the rain-streaked glass window.
+
+NODE|inspect_bus_sign|checked_bus_sign|1
+LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.

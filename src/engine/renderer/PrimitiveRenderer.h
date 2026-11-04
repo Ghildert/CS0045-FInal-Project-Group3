@@ -35,6 +35,9 @@ public:
     // Module 2: Sunbeam / Dust Mote Particles using GL_POINTS & glPointSize
     static void drawDustParticles(float timeSeconds, int count = 28);
 
+    // Module 2: Rain Streaks (GL_LINES + glLineStipple) & Ground Puddle Ripples (GL_LINE_LOOP)
+    static void drawRainAndRipples(float timeSeconds, int dropCount = 90);
+
     // Module 2: Showcase all 10 OpenGL primitive types in one row/panel
     static void drawModule2PrimitiveShowcase(float originX, float originY, float originZ);
 };

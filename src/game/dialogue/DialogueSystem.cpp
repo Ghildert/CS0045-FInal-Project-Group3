@@ -24,33 +24,42 @@ DialogueSystem::~DialogueSystem() {
 void DialogueSystem::destroy() {
     m_portraitElijah.destroy();
     m_portraitMaya.destroy();
+    m_portraitSam.destroy();
 }
 
 void DialogueSystem::initPortraitsAndData(const std::string& filePath) {
     engine::assets::Texture2D::ensureDefaultTexturesOnDisk();
     m_portraitElijah.loadFromFile("assets/sprites/portrait_elijah.png", true, false, true);
     m_portraitMaya.loadFromFile("assets/sprites/portrait_maya.png", true, false, true);
+    m_portraitSam.loadFromFile("assets/sprites/portrait_sam.png", true, false, true);
     loadFromExternalData(filePath);
 }
 
 void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
+    // Check if existing file already has Phase 5 hallway/street nodes
     if (std::filesystem::exists(filePath)) {
-        return;
+        std::ifstream chk(filePath);
+        std::string content((std::istreambuf_iterator<char>(chk)), std::istreambuf_iterator<char>());
+        if (content.find("sam_hallway_talk") != std::string::npos) {
+            return;
+        }
     }
     std::filesystem::create_directories(std::filesystem::path(filePath).parent_path());
     std::ofstream out(filePath);
-    out << "# Echoes of November - External Branching Narrative Data\n";
+    out << "# Echoes of November - External Branching Narrative Data (Locations 1-3)\n";
     out << "# Format:\n";
     out << "# NODE|node_id|completion_flag_key|completion_flag_val\n";
     out << "# LINE|speaker|dialogue_text\n";
     out << "# CHOICE|choice_label|target_node_id|set_flag_key|set_flag_val\n\n";
 
-    // 1. Maya initial conversation with branching player choices
+    // =========================================================================
+    // LOCATION 1: ROOM 304 (CLASSROOM)
+    // =========================================================================
     out << "NODE|maya_classroom_talk|talked_to_maya|1\n";
     out << "LINE|Maya|Still here, Elijah? Everyone else rushed out as soon as the last bell rang.\n";
     out << "LINE|Elijah|I was finishing the perspective study for Prof. Reyes. The sunset light is finally right.\n";
-    out << "LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting on the rooftop before the rain starts.\n";
-    out << "CHOICE|I'll head up right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1\n";
+    out << "LINE|Maya|Look at the clouds over the viaduct... Sam texted that the band is meeting outside before the storm hits.\n";
+    out << "CHOICE|I'll head out right after I grab my sketchbook.|maya_branch_promise|promised_rooftop_rehearsal|1\n";
     out << "CHOICE|Have you felt like this week is repeating itself?|maya_branch_dejavu|asked_maya_dejavu|1\n\n";
 
     out << "NODE|maya_branch_promise|talked_to_maya|1\n";
@@ -62,29 +71,73 @@ void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
     out << "LINE|Maya|You too?! When the bell rang at 4:30, I swore I remembered the rain hitting the glass at that exact angle.\n";
     out << "LINE|Maya|Check your sketchbook on the front-left desk—I think you wrote something about it in the margin.\n\n";
 
-    // 2. Interactive Sketchbook on Front-Left Desk
     out << "NODE|inspect_sketchbook|has_sketchbook|1\n";
     out << "LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.\n";
-    out << "LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Don't miss the rooftop rehearsal at 5:00 PM.'\n";
+    out << "LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'\n";
     out << "LINE|System|[Obtained Sketchbook & Chords — Flag 'has_sketchbook' = 1]\n\n";
 
-    // 3. Chalkboard Exam Schedule
     out << "NODE|inspect_chalkboard|read_chalkboard|1\n";
     out << "LINE|Chalkboard|CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase — Friday, Nov 15.\n";
     out << "LINE|Elijah|Primitives, Vertex Arrays, VBOs, 4x4 Matrices, Viewing, and Phong Lighting... all set.\n\n";
 
-    // 4. Sunset Window
     out << "NODE|inspect_window|looked_out_window|1\n";
     out << "LINE|Elijah|Warm amber sunlight pours across the wooden floorboards from the west courtyard.\n";
     out << "LINE|Elijah|Dark rainclouds are gathering over the train viaduct in the distance.\n\n";
 
-    // 5. Classroom Door (locked vs unlocked)
     out << "NODE|inspect_door_locked||0\n";
     out << "LINE|Elijah|The sliding wooden door to the third-floor school hallway.\n";
     out << "LINE|Elijah|I should grab my Sketchbook from the front-left desk and talk to Maya before heading out.\n\n";
 
     out << "NODE|inspect_door_unlocked|entered_hallway_transition|1\n";
-    out << "LINE|Elijah|I've got my sketchbook and checked in with Maya. Time to step out into the hallway.\n";
+    out << "LINE|Elijah|I've got my sketchbook and checked in with Maya. Stepping out into the 3rd-Floor School Hallway.\n\n";
+
+    // =========================================================================
+    // LOCATION 2: 3RD-FLOOR SCHOOL HALLWAY
+    // =========================================================================
+    out << "NODE|sam_hallway_talk|talked_to_sam|1\n";
+    out << "LINE|Sam|There you are, Elijah! Did you bring the chord progression from Room 304?\n";
+    out << "LINE|Elijah|Got it right here in my sketchbook. Why are we packing up by the lockers?\n";
+    out << "LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to Sundown Mart.\n";
+    out << "CHOICE|Let's practice under the convenience store awning.|sam_branch_awning|street_unlocked|1\n";
+    out << "CHOICE|Want to test the rhythm timing right here first?|sam_branch_rhythm|street_unlocked|1\n\n";
+
+    out << "NODE|sam_branch_awning|street_unlocked|1\n";
+    out << "LINE|Elijah|The neon canopy outside Sundown Mart is dry and has benches. Let's meet Maya down on the street.\n";
+    out << "LINE|Sam|Good call! Take the stairwell exit on the right end of the corridor whenever you're ready.\n\n";
+
+    out << "NODE|sam_branch_rhythm|street_unlocked|1\n";
+    out << "LINE|Sam|Haha, I like your energy! Let's head down to the street exit on the right so Maya doesn't wait in the rain.\n\n";
+
+    out << "NODE|inspect_lockers|inspected_lockers|1\n";
+    out << "LINE|Elijah|Row of steel-blue student lockers. Locker 314 has a faded sticker from last year's Cultural Festival.\n\n";
+
+    out << "NODE|inspect_noticeboard|inspected_noticeboard|1\n";
+    out << "LINE|Noticeboard|Campus Announcement: 'Annual Acoustic Night — Friday 6:00 PM. All student bands report for soundcheck.'\n\n";
+
+    out << "NODE|inspect_stairs_locked||0\n";
+    out << "LINE|Elijah|The stairwell leading down to the street. I should check in with Sam by the lockers first.\n\n";
+
+    // =========================================================================
+    // LOCATION 3: RAINY STREET / SUNDOWN MART EXTERIOR
+    // =========================================================================
+    out << "NODE|maya_street_talk|talked_to_maya_street|1\n";
+    out << "LINE|Maya|You made it! Listen to the rain hitting the convenience store awning...\n";
+    out << "LINE|Elijah|The neon reflection on the wet asphalt looks just like the sketch I drew this afternoon.\n";
+    out << "LINE|Maya|Sam left his acoustic guitar by the bus-stop bench so you could run through the melody!\n";
+    out << "CHOICE|Let's play the acoustic rhythm song together! [Start Minigame]|maya_street_ready|ready_for_minigame|1\n";
+    out << "CHOICE|Let me grab a warm drink from Sundown Mart first.|maya_street_drink|checked_storefront|1\n\n";
+
+    out << "NODE|maya_street_ready|ready_for_minigame|1\n";
+    out << "LINE|Maya|Interact with the Acoustic Guitar Case on the bench (or press [G]) when you're ready to play!\n\n";
+
+    out << "NODE|maya_street_drink|checked_storefront|1\n";
+    out << "LINE|Maya|Get me a warm ginger tea too! Then inspect the Guitar Case on the bench when you're ready to play.\n\n";
+
+    out << "NODE|inspect_storefront|checked_storefront|1\n";
+    out << "LINE|Elijah|24/7 Sundown Mart. Warm fluorescent light glows through the rain-streaked glass window.\n\n";
+
+    out << "NODE|inspect_bus_sign|checked_bus_sign|1\n";
+    out << "LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.\n";
 
     out.close();
 }
@@ -265,6 +318,9 @@ const engine::assets::Texture2D* DialogueSystem::getPortraitForSpeaker(const std
     }
     if (speaker == "Maya" && m_portraitMaya.isValid()) {
         return &m_portraitMaya;
+    }
+    if (speaker == "Sam" && m_portraitSam.isValid()) {
+        return &m_portraitSam;
     }
     return nullptr;
 }

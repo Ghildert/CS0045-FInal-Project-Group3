@@ -21,6 +21,7 @@ public:
         float x, float y, float z,
         const std::string& dialogueId);
 
+    void setPositionAndDialogue(float x, float y, float z, const std::string& dialogueId);
     void destroy();
 
     void registerCollider(engine::collision::CollisionWorld& world) const;

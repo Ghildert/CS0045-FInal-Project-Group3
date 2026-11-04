@@ -133,3 +133,25 @@
 - Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
 - Executed `.\build\NarrativeGame.exe --verify-phase4`:
   - Verified loading portraits (`id=9`, `id=10`), external story & phone data files, branching choice selection (`Flag[promised_rooftop_rehearsal]=1`), smartphone reply (`Flag[replied_phone_sam]=1`), automatic hallway unlock (`Flag[hallway_unlocked]=1`), save/load round-trip to `data/saves/save_slot_1.sav`, and scene transition with `GL Errors = 0`.
+
+
+---
+
+## Phase 5 — Additional Locations (2026-11-05)
+
+### Completed Subsystems
+1. **New Environment & Character Assets (`src/engine/assets/Texture2D.cpp`):**
+   - Generated pixel-art environment textures: `assets/textures/hallway_tile.png` (terrazzo corridor tiles), `assets/textures/school_lockers.png` (steel-blue lockers), `assets/textures/wet_asphalt.png` (rain-slicked street & crosswalk), and `assets/textures/storefront_neon.png` (24/7 Sundown Mart neon canopy & storefront).
+   - Generated sprite sheet `assets/sprites/npc_sam_sheet.png` ($128 \times 96$) and portrait `assets/sprites/portrait_sam.png` ($48 \times 48$) for **Sam (Band Club)**.
+2. **Module 2 Rain Particle & Ground Puddle Ripple System (`src/engine/renderer/PrimitiveRenderer.cpp`):**
+   - Implemented `PrimitiveRenderer::drawRainAndRipples` using `GL_LINES` + `glLineStipple` (`0x00FF` dashed rain streaks) and expanding `GL_LINE_LOOP` ground puddle splash rings.
+3. **3rd-Floor School Hallway & Rainy Convenience-Store Street (`src/game/scenes/ClassroomScene.h`, `ClassroomScene.cpp`):**
+   - Added `LocationId::Hallway` (terrazzo floor, corridor walls, 2 steel-blue locker banks, campus noticeboard, waiting bench, doors to Room 304 and street stairwell, and NPC **Sam**).
+   - Added `LocationId::RainyStreet` (wet asphalt road, 24/7 Sundown Mart storefront & neon awning, bus-stop bench + acoustic guitar case prop, cast-iron streetlight with glowing sphere lamp head, rain & puddle ripples, and NPC **Maya** under the awning).
+   - Connected all three locations via interactive doors/stairs with `SceneTransition` and added quick-travel keys `[F6]`, `[F7]`, and `[F8]`.
+
+### Verification
+- Built with Ninja & MSYS2 UCRT64 GCC 16.2.0 (`0 warnings, 0 errors`).
+- Executed `.\build\NarrativeGame.exe --verify-phase5`:
+  - Verified loading all 16 textures, sprite sheets, and portraits.
+  - Verified narrative sequence across all 3 locations (`LocationsVisitedMask=0x7`: `Classroom` -> `Hallway` -> `RainyStreet`), completing Sam's and Maya's branching dialogues (`Flag[talked_to_sam]=1`, `Flag[ready_for_minigame]=1`) with `GL Errors = 0`.

@@ -127,6 +127,59 @@ void PrimitiveRenderer::drawDustParticles(float timeSeconds, int count) {
     glPopAttrib();
 }
 
+void PrimitiveRenderer::drawRainAndRipples(float timeSeconds, int dropCount) {
+    glPushAttrib(GL_ENABLE_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 1. Slanted Rain Streaks using GL_LINES + glLineStipple (Module 2)
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple(1, kStippleDashed);
+    glLineWidth(1.4f);
+
+    glBegin(GL_LINES);
+    for (int i = 0; i < dropCount; ++i) {
+        float seed = static_cast<float>(i) * 1.91f;
+        float rx = std::sin(seed * 3.7f) * 5.2f;
+        float rz = std::cos(seed * 2.3f) * 3.2f;
+        float cycle = std::fmod(seed + timeSeconds * 5.8f, 4.2f);
+        float ryTop = 4.2f - cycle;
+        float ryBot = ryTop - 0.42f;
+
+        glColor4f(0.68f, 0.82f, 0.98f, 0.55f);
+        glVertex3f(rx,        ryTop, rz);
+        glColor4f(0.82f, 0.92f, 1.00f, 0.85f);
+        glVertex3f(rx - 0.08f, ryBot, rz);
+    }
+    glEnd();
+    glDisable(GL_LINE_STIPPLE);
+
+    // 2. Expanding Ground Puddle Splash Ripples using GL_LINE_LOOP (Module 2)
+    constexpr float kTwoPi = 6.28318530718f;
+    constexpr int   kSegs  = 16;
+    glLineWidth(1.2f);
+    for (int p = 0; p < 10; ++p) {
+        float pSeed = static_cast<float>(p) * 2.47f;
+        float px = std::sin(pSeed * 1.9f) * 4.2f;
+        float pz = 0.4f + std::cos(pSeed * 2.7f) * 2.2f;
+        float phase = std::fmod(timeSeconds * 1.4f + pSeed, 1.0f);
+        float radius = 0.05f + phase * 0.32f;
+        float alpha  = (1.0f - phase) * 0.65f;
+
+        glColor4f(0.65f, 0.84f, 0.98f, alpha);
+        glBegin(GL_LINE_LOOP);
+        for (int k = 0; k < kSegs; ++k) {
+            float ang = (static_cast<float>(k) / static_cast<float>(kSegs)) * kTwoPi;
+            glVertex3f(px + std::cos(ang) * radius, 0.012f, pz + std::sin(ang) * radius);
+        }
+        glEnd();
+    }
+
+    glPopAttrib();
+}
+
 void PrimitiveRenderer::drawModule2PrimitiveShowcase(float originX, float originY, float originZ) {
     glPushAttrib(GL_ENABLE_BIT | GL_POINT_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
     glDisable(GL_LIGHTING);

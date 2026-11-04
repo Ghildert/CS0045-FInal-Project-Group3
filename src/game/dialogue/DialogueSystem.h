@@ -62,6 +62,7 @@ private:
     std::unordered_map<std::string, DialogueSequence> m_sequences;
     engine::assets::Texture2D m_portraitElijah;
     engine::assets::Texture2D m_portraitMaya;
+    engine::assets::Texture2D m_portraitSam;
 
     bool        m_active;
     std::string m_activeSequenceId;

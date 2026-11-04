@@ -490,7 +490,14 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
         writePNGIfMissing(outPath, PW, PH, img);
     };
 
-    // 9. Dialogue Portraits for Elijah & Maya
+    // 9. Dialogue Portraits & Sprite Sheet for Elijah, Maya, and Sam
+    generateCharacterSheet(
+        "assets/sprites/npc_sam_sheet.png",
+        32, 28, 26,    // Dark hair
+        68, 96, 66,    // Olive band club jacket
+        228, 168, 56,  // Gold lanyard
+        false);
+
     generatePortraitPNG(
         "assets/sprites/portrait_elijah.png",
         38, 48, 72,    // Background
@@ -506,6 +513,126 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
         198, 138, 72,  // Cardigan
         52, 138, 132,  // Ribbon
         true);
+
+    generatePortraitPNG(
+        "assets/sprites/portrait_sam.png",
+        42, 58, 48,    // Background
+        32, 28, 26,    // Hair
+        68, 96, 66,    // Olive jacket
+        228, 168, 56,  // Gold lanyard
+        false);
+
+    // 10. School Hallway Terrazzo Floor Tile Texture
+    {
+        std::vector<unsigned char> img(W * H * 4);
+        for (int y = 0; y < H; ++y) {
+            for (int x = 0; x < W; ++x) {
+                int idx = (y * W + x) * 4;
+                bool grout = (x % 16 == 0 || y % 16 == 0);
+                bool checker = (((x / 16) + (y / 16)) % 2 == 0);
+                int speck = ((x * 7 + y * 13) % 9) - 4;
+                if (grout) {
+                    img[idx + 0] = 110;
+                    img[idx + 1] = 108;
+                    img[idx + 2] = 104;
+                } else if (checker) {
+                    img[idx + 0] = static_cast<unsigned char>(208 + speck);
+                    img[idx + 1] = static_cast<unsigned char>(198 + speck);
+                    img[idx + 2] = static_cast<unsigned char>(178 + speck);
+                } else {
+                    img[idx + 0] = static_cast<unsigned char>(164 + speck);
+                    img[idx + 1] = static_cast<unsigned char>(168 + speck);
+                    img[idx + 2] = static_cast<unsigned char>(156 + speck);
+                }
+                img[idx + 3] = 255;
+            }
+        }
+        writePNGIfMissing("assets/textures/hallway_tile.png", W, H, img);
+    }
+
+    // 11. School Lockers Texture (Steel-blue locker doors with vents and handle)
+    {
+        std::vector<unsigned char> img(W * H * 4);
+        for (int y = 0; y < H; ++y) {
+            for (int x = 0; x < W; ++x) {
+                int idx = (y * W + x) * 4;
+                int lx = x % 16;
+                bool seam = (lx == 0 || lx == 15 || y == 0 || y == H - 1);
+                bool vent = (y >= 5 && y <= 10 && (y % 2 == 0) && lx >= 4 && lx <= 11);
+                bool handle = (lx == 12 && y >= 15 && y <= 18);
+                if (seam) {
+                    img[idx + 0] = 44;  img[idx + 1] = 56;  img[idx + 2] = 72;
+                } else if (vent) {
+                    img[idx + 0] = 35;  img[idx + 1] = 45;  img[idx + 2] = 58;
+                } else if (handle) {
+                    img[idx + 0] = 215; img[idx + 1] = 215; img[idx + 2] = 220;
+                } else {
+                    img[idx + 0] = 82;  img[idx + 1] = 108; img[idx + 2] = 136;
+                }
+                img[idx + 3] = 255;
+            }
+        }
+        writePNGIfMissing("assets/textures/school_lockers.png", W, H, img);
+    }
+
+    // 12. Rainy Street Wet Asphalt & Sidewalk Texture
+    {
+        std::vector<unsigned char> img(W * H * 4);
+        for (int y = 0; y < H; ++y) {
+            for (int x = 0; x < W; ++x) {
+                int idx = (y * W + x) * 4;
+                int grain = ((x * 11 + y * 5) % 11) - 5;
+                bool puddle = ((x - 16) * (x - 16) + (y - 16) * (y - 16) < 38);
+                bool stripe = (y >= 26 && y <= 29 && (x % 16 < 10));
+                if (stripe) {
+                    img[idx + 0] = static_cast<unsigned char>(210 + grain);
+                    img[idx + 1] = static_cast<unsigned char>(195 + grain);
+                    img[idx + 2] = static_cast<unsigned char>(145 + grain);
+                } else if (puddle) {
+                    img[idx + 0] = static_cast<unsigned char>(46 + grain);
+                    img[idx + 1] = static_cast<unsigned char>(62 + grain);
+                    img[idx + 2] = static_cast<unsigned char>(88 + grain);
+                } else {
+                    img[idx + 0] = static_cast<unsigned char>(38 + grain);
+                    img[idx + 1] = static_cast<unsigned char>(40 + grain);
+                    img[idx + 2] = static_cast<unsigned char>(52 + grain);
+                }
+                img[idx + 3] = 255;
+            }
+        }
+        writePNGIfMissing("assets/textures/wet_asphalt.png", W, H, img);
+    }
+
+    // 13. 24/7 Convenience Store Neon Canopy & Glass Storefront Texture
+    {
+        std::vector<unsigned char> img(W * H * 4);
+        for (int y = 0; y < H; ++y) {
+            for (int x = 0; x < W; ++x) {
+                int idx = (y * W + x) * 4;
+                if (y < 3) {
+                    // Neon orange top stripe
+                    img[idx + 0] = 252; img[idx + 1] = 118; img[idx + 2] = 48;
+                } else if (y < 6) {
+                    // Cream sign band
+                    img[idx + 0] = 248; img[idx + 1] = 242; img[idx + 2] = 220;
+                } else if (y < 9) {
+                    // Teal canopy stripe
+                    img[idx + 0] = 38;  img[idx + 1] = 185; img[idx + 2] = 165;
+                } else if (x == 0 || x == W - 1 || x == 16 || y == H - 1) {
+                    // Storefront aluminum frame
+                    img[idx + 0] = 62;  img[idx + 1] = 68;  img[idx + 2] = 78;
+                } else {
+                    // Warm lit interior shelves seen through glass
+                    bool shelf = (y % 6 == 0);
+                    img[idx + 0] = shelf ? 185 : 245;
+                    img[idx + 1] = shelf ? 145 : 218;
+                    img[idx + 2] = shelf ? 95  : 155;
+                }
+                img[idx + 3] = 255;
+            }
+        }
+        writePNGIfMissing("assets/textures/storefront_neon.png", W, H, img);
+    }
 }
 
 } // namespace assets

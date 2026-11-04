@@ -37,6 +37,13 @@ bool NPCCharacter::init(
     return texOk && m_spriteQuad.isValid();
 }
 
+void NPCCharacter::setPositionAndDialogue(float x, float y, float z, const std::string& dialogueId) {
+    m_posX       = x;
+    m_posY       = y;
+    m_posZ       = z;
+    m_dialogueId = dialogueId;
+}
+
 void NPCCharacter::destroy() {
     m_spriteQuad.destroy();
     m_spriteSheet.destroy();

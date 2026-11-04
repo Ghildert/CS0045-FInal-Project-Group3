@@ -2,13 +2,11 @@
  * CS0045 Computer Graphics and Visual Computing
  * "Echoes of November" - 2.5D Narrative Adventure Game (C++17 & OpenGL Compatibility Profile)
  *
- * PHASE 4 DELIVERABLE: Narrative and UI Systems
- * - Character Portraits in Dialogue Boxes (portrait_elijah.png, portrait_maya.png)
- * - Branching Dialogue Choices & Story Flags (StoryState)
- * - External Story & Smartphone Data Files (data/dialogue/story_dialogues.txt, phone_messages.txt)
- * - Interactive Smartphone Messaging Overlay [Tab] (PhoneSystem)
- * - Cinematic Scene Transitions (SceneTransition)
- * - Save/Load System [F5 / F9] in data/saves/save_slot_1.sav
+ * PHASE 5 DELIVERABLE: Additional Locations (Multi-Scene Narrative Sequence)
+ * - Location 1: Room 304 Classroom (Late Afternoon)
+ * - Location 2: 3rd-Floor School Hallway (Terrazzo tiles, lockers, noticeboard, NPC Sam)
+ * - Location 3: Rainy Street / 24/7 Sundown Mart Exterior (Wet asphalt, neon storefront,
+ *               bus stop bench, streetlight, Module 2 Rain Streaks & Puddle Ripples, NPC Maya)
  */
 
 #ifndef GLEW_STATIC
@@ -31,18 +29,18 @@ using namespace engine;
 namespace {
 
 camera::Camera3D             g_camera;
-game::scenes::ClassroomScene g_classroomScene;
+game::scenes::ClassroomScene g_worldScene;
 
 bool g_autoVerifyExit   = false;
-bool g_verifyPhase4Mode = false;
+bool g_verifyPhase5Mode = false;
 int  g_framesRendered   = 0;
 bool g_fullscreen       = false;
 
 void displayCallback() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    g_classroomScene.render3D(g_camera);
-    g_classroomScene.render2D(g_camera);
+    g_worldScene.render3D(g_camera);
+    g_worldScene.render2D(g_camera);
 
     glutSwapBuffers();
     glFlush();
@@ -50,17 +48,16 @@ void displayCallback() {
     core::Logger::checkGLError("displayCallback");
     ++g_framesRendered;
 
-    if (g_autoVerifyExit && g_framesRendered >= 28) {
-        bool sceneOk = g_classroomScene.isValid();
-        const auto& st = g_classroomScene.getStoryState();
+    if (g_autoVerifyExit && g_framesRendered >= 32) {
+        bool sceneOk = g_worldScene.isValid();
+        const auto& st = g_worldScene.getStoryState();
 
-        std::cout << "[Phase 4 Self-Test] Rendered " << g_framesRendered
-                  << " frames. Scene=" << (sceneOk ? "OK" : "FAIL")
-                  << ", Flag[talked_to_maya]=" << st.getFlag("talked_to_maya")
-                  << ", Flag[promised_rooftop_rehearsal]=" << st.getFlag("promised_rooftop_rehearsal")
-                  << ", Flag[replied_phone_sam]=" << st.getFlag("replied_phone_sam")
-                  << ", Flag[hallway_unlocked]=" << st.getFlag("hallway_unlocked")
-                  << ", DialoguesCompleted=" << g_classroomScene.getDialogue().getCompletedDialoguesCount()
+        std::cout << "[Phase 5 Self-Test] Rendered " << g_framesRendered
+                  << " frames. AllAssets=" << (sceneOk ? "OK(15)" : "FAIL")
+                  << ", LocationsVisitedMask=0x" << std::hex << g_worldScene.getLocationsVisitedCount() << std::dec
+                  << " (Current=" << g_worldScene.getCurrentLocationIdString() << ")"
+                  << ", Flag[talked_to_sam]=" << st.getFlag("talked_to_sam")
+                  << ", Flag[ready_for_minigame]=" << st.getFlag("ready_for_minigame")
                   << ", GL Errors=" << core::Logger::getErrorCount() << std::endl;
         glutLeaveMainLoop();
     }
@@ -80,7 +77,7 @@ void keyboardDownCallback(unsigned char key, int x, int y) {
     } else if (key == 'p' || key == 'P') {
         g_camera.cycleProjectionMode();
     } else {
-        g_classroomScene.onKeyPress(key);
+        g_worldScene.onKeyPress(key);
         if (key == 'r' || key == 'R') {
             g_camera.resetToDefault25D();
         }
@@ -102,7 +99,7 @@ void specialDownCallback(int key, int x, int y) {
             glutReshapeWindow(1280, 720);
         }
     } else {
-        g_classroomScene.onSpecialKeyPress(key);
+        g_worldScene.onSpecialKeyPress(key);
     }
 }
 
@@ -112,17 +109,17 @@ void specialUpCallback(int key, int x, int y) {
 
 void mouseButtonCallback(int button, int state, int x, int y) {
     input::InputManager::onMouseButton(button, state, x, y);
-    g_classroomScene.onMouseClick(button, state);
+    g_worldScene.onMouseClick(button, state);
 }
 
 void timerCallback(int value) {
     (void)value;
     constexpr float dt = 0.016f;
 
-    if (g_verifyPhase4Mode) {
-        g_classroomScene.runPhase4VerificationStep(dt, g_camera);
+    if (g_verifyPhase5Mode) {
+        g_worldScene.runPhase5VerificationStep(dt, g_camera);
     } else {
-        g_classroomScene.update(dt, g_camera);
+        g_worldScene.update(dt, g_camera);
     }
 
     input::InputManager::endFrame();
@@ -138,9 +135,10 @@ int main(int argc, char** argv) {
             std::strcmp(argv[i], "--verify-phase1") == 0 ||
             std::strcmp(argv[i], "--verify-phase2") == 0 ||
             std::strcmp(argv[i], "--verify-phase3") == 0 ||
-            std::strcmp(argv[i], "--verify-phase4") == 0) {
+            std::strcmp(argv[i], "--verify-phase4") == 0 ||
+            std::strcmp(argv[i], "--verify-phase5") == 0) {
             g_autoVerifyExit   = true;
-            g_verifyPhase4Mode = true;
+            g_verifyPhase5Mode = true;
         }
     }
 
@@ -148,7 +146,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(1280, 720);
     glutInitWindowPosition(100, 60);
-    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 4: Narrative & UI Systems]");
+    glutCreateWindow("Echoes of November - 2.5D Narrative Adventure [Phase 5: Multi-Location Story]");
 
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {
@@ -165,10 +163,10 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glShadeModel(GL_SMOOTH);
-    glClearColor(0.09f, 0.08f, 0.14f, 1.0f);
+    glClearColor(0.07f, 0.07f, 0.12f, 1.0f);
 
     input::InputManager::init();
-    g_classroomScene.init();
+    g_worldScene.init();
 
     glutDisplayFunc(displayCallback);
     glutReshapeFunc(reshapeCallback);
@@ -184,6 +182,6 @@ int main(int argc, char** argv) {
 
     glutMainLoop();
 
-    g_classroomScene.destroy();
+    g_worldScene.destroy();
     return (core::Logger::getErrorCount() == 0) ? 0 : 2;
 }
