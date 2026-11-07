@@ -41,6 +41,7 @@ public:
 
     void selectNextThread();
     void selectChoice(int choiceIndex, StoryState& storyState);
+    void autoCompleteAllReplies(StoryState& storyState);
 
     int getUnreadCount(const StoryState& storyState) const;
     void render2D(int screenWidth, int screenHeight, const StoryState& storyState) const;

@@ -18,15 +18,30 @@ LINE|Maya|Awesome! Grab your sketchbook and reply to Sam on your phone [Tab], th
 NODE|maya_branch_dejavu|talked_to_maya|1
 LINE|Elijah|Maya... do you ever get the feeling we've had this exact November afternoon conversation before?
 LINE|Maya|You too?! When the bell rang at 4:30, I swore I remembered the rain hitting the glass at that exact angle.
-LINE|Maya|Check your sketchbook on the front-left desk—I think you wrote something about it in the margin.
+LINE|Maya|Check your sketchbook on the front-left desk - I think you wrote something about it in the margin.
 
 NODE|inspect_sketchbook|has_sketchbook|1
 LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.
-LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 — Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'
-LINE|System|[Obtained Sketchbook & Chords — Flag 'has_sketchbook' = 1]
+LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 - Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'
+LINE|System|[Obtained Sketchbook & Chords - Flag 'has_sketchbook' = 1]
+
+NODE|inspect_sketchbook_taken|inspected_desk_again|1
+LINE|Elijah|My front-row desk. I already tucked my sketchbook and acoustic chord chart into my bag.
+LINE|Elijah|Faint pencil smudges from this afternoon's vanishing-point exercise are still on the wood grain.
+
+NODE|inspect_teacher_desk|inspected_teacher_desk|1
+LINE|Elijah|Prof. Reyes's front lectern desk. A ceramic Utah teapot and a glossy blue reference sphere sit on top.
+LINE|Elijah|He always brings those two props to demonstrate Specular Phong highlights vs. matte wood.
+
+NODE|inspect_pyramid_desk|inspected_pyramid_desk|1
+LINE|Elijah|A golden 3D pyramid model gently bobbing on the center desk for our homogeneous matrix lab.
+LINE|Elijah|Watching the sunset catch its facets makes the whole room feel calm.
+
+NODE|inspect_back_desks|inspected_back_desks|1
+LINE|Elijah|A row of scuffed wooden student desks. Someone carved 'BAND CLUB FOREVER' tiny into the corner.
 
 NODE|inspect_chalkboard|read_chalkboard|1
-LINE|Chalkboard|CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase — Friday, Nov 15.
+LINE|Chalkboard|CS0045 Visual Computing Finals: Modules 1-8 Practical Showcase - Friday, Nov 15.
 LINE|Elijah|Primitives, Vertex Arrays, VBOs, 4x4 Matrices, Viewing, and Phong Lighting... all set.
 
 NODE|inspect_window|looked_out_window|1
@@ -57,32 +72,52 @@ LINE|Sam|Haha, I like your energy! Let's head down to the street exit on the rig
 NODE|inspect_lockers|inspected_lockers|1
 LINE|Elijah|Row of steel-blue student lockers. Locker 314 has a faded sticker from last year's Cultural Festival.
 
+NODE|inspect_lockers_east|inspected_lockers_east|1
+LINE|Elijah|The east bank of lockers near the stairwell. Sam keeps spare guitar strings and capos in Locker 322.
+
 NODE|inspect_noticeboard|inspected_noticeboard|1
-LINE|Noticeboard|Campus Announcement: 'Annual Acoustic Night — Friday 6:00 PM. All student bands report for soundcheck.'
+LINE|Noticeboard|Campus Announcement: 'Annual Acoustic Night - Friday 6:00 PM. All student bands report for soundcheck.'
+
+NODE|inspect_hallway_bench|inspected_hallway_bench|1
+LINE|Elijah|A sturdy wooden corridor bench outside Room 304. We always sit here between afternoon lectures.
 
 NODE|inspect_stairs_locked||0
 LINE|Elijah|The stairwell leading down to the street. I should check in with Sam by the lockers first.
 
 NODE|maya_street_talk|talked_to_maya_street|1
-LINE|Maya|You made it! Listen to the rain hitting the convenience store awning...
-LINE|Elijah|The neon reflection on the wet asphalt looks just like the sketch I drew this afternoon.
-LINE|Maya|Sam left his acoustic guitar by the bus-stop bench so you could run through the melody!
-CHOICE|Let's play the acoustic rhythm song together! [Start Minigame]|maya_street_ready|ready_for_minigame|1
-CHOICE|Let me grab a warm drink from Sundown Mart first.|maya_street_drink|checked_storefront|1
+LINE|Maya|You made it down to P. Paredes Street! Everyone is grabbing snacks by the canteens after class.
+LINE|Elijah|Seeing the FEU Tech facade and the food stalls next door feels just like the sketch in my notebook.
+LINE|Maya|Sam left his acoustic guitar by the sidewalk bench so you could run through the melody!
+CHOICE|Let's play the acoustic rhythm song right here on P. Paredes! [Start Minigame]|maya_street_ready|ready_for_minigame|1
+CHOICE|Let me check out Mang Rody's Eatery and Byte & Snacks first.|maya_street_drink|checked_storefront|1
 
 NODE|maya_street_ready|ready_for_minigame|1
-LINE|Maya|Interact with the Acoustic Guitar Case on the bench (or press [G]) when you're ready to play!
+LINE|Maya|Interact with Sam's Acoustic Guitar by the sidewalk stools (or press [G]) when you're ready to play!
 
 NODE|maya_street_drink|checked_storefront|1
-LINE|Maya|Get me a warm ginger tea too! Then inspect the Guitar Case on the bench when you're ready to play.
+LINE|Maya|Grab some cheese fries at Byte & Snacks for me too! Then inspect the Guitar Case when you're ready to play.
+
+NODE|inspect_feu_facade|checked_feu_facade|1
+LINE|Elijah|937 P. Paredes St - FEU Institute of Technology. The green and gold Autonomous Status banner gleams above the hedges.
+LINE|Elijah|Students are heading up and down the twin entrance stairways between late-afternoon lab sessions.
+
+NODE|inspect_silver_shutter|checked_silver_shutter|1
+LINE|Elijah|The east entrance stairway under the FEU Institute of Technology fascia. Both stair bays lead up into the main campus lobby.
 
 NODE|inspect_storefront|checked_storefront|1
-LINE|Elijah|24/7 Sundown Mart. Warm fluorescent light glows through the rain-streaked glass window.
+LINE|Elijah|The sidewalk food stall right beside FEU Tech, with white monobloc stools, blue gulaman dispensers, and steamed siomai trays.
+LINE|Elijah|Above the corrugated canopy is a big 'Frost & Brew - Iced Coffee & Milk Tea (Buy 1 Take 1 P49)' promotion billboard.
+
+NODE|inspect_raloys_canteen|checked_raloys_canteen|1
+LINE|Elijah|Mang Rody's Eatery and Byte & Snacks! The bright red sign and green turf counters are always packed after CS0045 class.
 
 NODE|inspect_bus_sign|checked_bus_sign|1
-LINE|Bus Stop|Route 14 Last Bus: 21:30. Puddles ripple around the base of the cast-iron streetlight.
+LINE|Elijah|Stacks of yellow-and-orange plastic delivery crates outside the Tater Cube fries kiosk and Byte & Snacks.
+
+NODE|inspect_room_general||0
+LINE|Elijah|Let's look around closely. Walk up to any glowing amber marker and press [E] to interact.
 
 NODE|post_minigame_celebration|story_act1_complete|1
-LINE|Maya|That sounded incredible against the rain, Elijah! The bridge arpeggio finally clicked.
-LINE|Elijah|Playing it under the Sundown Mart neon felt weirdly familiar... in the best way.
-LINE|Maya|Come on, the rain is easing up. We're ready for Friday's Acoustic Night!
+LINE|Maya|That sounded incredible right outside FEU Tech, Elijah! Even the crowd by Byte & Snacks stopped to listen.
+LINE|Elijah|Playing it out here on P. Paredes Street made the whole song come together.
+LINE|Maya|Come on, let's celebrate with snacks at Mang Rody's Eatery. We're ready for Friday's Acoustic Night!

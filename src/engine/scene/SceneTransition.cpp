@@ -95,8 +95,8 @@ void SceneTransition::render2D(int screenWidth, int screenHeight) const {
     glPopAttrib();
 
     if (alpha > 0.45f && !m_bannerTitle.empty()) {
-        ui::TextRenderer::drawStrokeText2D(
-            w * 0.5f - 210.0f, h * 0.5f,
+        ui::TextRenderer::drawStrokeTextCentered2D(
+            w * 0.5f, h * 0.5f,
             m_bannerTitle,
             0.20f, 2.2f, GLUT_STROKE_ROMAN,
             1.0f, 0.88f, 0.52f);

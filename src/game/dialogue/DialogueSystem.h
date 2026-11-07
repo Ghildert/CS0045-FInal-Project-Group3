@@ -43,6 +43,7 @@ public:
 
     void registerSequence(const DialogueSequence& seq);
     bool startDialogue(const std::string& sequenceId);
+    void closeDialogue() { m_active = false; }
     void advanceOrCompleteLine(narrative::StoryState* storyState = nullptr);
     bool selectChoice(int choiceIndex, narrative::StoryState* storyState = nullptr);
     void moveChoiceCursor(int delta);
@@ -69,6 +70,7 @@ private:
     int         m_currentLineIndex;
     int         m_selectedChoiceIndex;
     float       m_charTimer;
+    float       m_blipCooldown;
     size_t      m_visibleChars;
     int         m_completedCount;
 };

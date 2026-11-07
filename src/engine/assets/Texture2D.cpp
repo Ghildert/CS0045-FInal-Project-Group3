@@ -104,9 +104,6 @@ void Texture2D::unbind() {
 }
 
 static void writePNGIfMissing(const std::string& path, int w, int h, const std::vector<unsigned char>& rgba) {
-    if (std::filesystem::exists(path)) {
-        return;
-    }
     std::filesystem::create_directories(std::filesystem::path(path).parent_path());
     stbi_write_png(path.c_str(), w, h, 4, rgba.data(), w * 4);
 }
@@ -319,6 +316,24 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
                     if (col == 3) { leftLegX =  0; rightLegX =  0; rightLegY =  0; leftArmY =  0; rightArmY = 0; }
                 }
 
+                int hy = oy + 6 + bobY;
+                int ty = oy + 20 + bobY;
+
+                // 0. Long Back Hair (drawn FIRST so it stays behind the head, neck, collar, and torso)
+                if (longHair) {
+                    unsigned char backR = (hairR > 18) ? static_cast<unsigned char>(hairR - 18) : 0;
+                    unsigned char backG = (hairG > 12) ? static_cast<unsigned char>(hairG - 12) : 0;
+                    unsigned char backB = (hairB > 10) ? static_cast<unsigned char>(hairB - 10) : 0;
+
+                    // Dark silhouette outline for back hair behind head & shoulders
+                    fillRect(ox + 6, hy + 2, 20, 22, 24, 22, 30);
+                    // Deep shaded back hair cascading behind neck and upper back
+                    fillRect(ox + 7, hy + 3, 18, 20, backR, backG, backB);
+                    // Warm mid-tone hair strands visible behind the head sides
+                    fillRect(ox + 7, hy + 3, 2,  13, hairR, hairG, hairB);
+                    fillRect(ox + 23, hy + 3, 2, 13, hairR, hairG, hairB);
+                }
+
                 // 1. Legs & Shoes (y: 33..45)
                 // Left leg
                 fillRect(ox + 11 + leftLegX, oy + 33 + leftLegY, 4, 10, 42, 46, 62);
@@ -328,7 +343,6 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
                 fillRect(ox + 17 + rightLegX, oy + 43 + rightLegY, 5, 3,  28, 24, 24);
 
                 // 2. Torso / School Shirt & Vest (y: 20..33)
-                int ty = oy + 20 + bobY;
                 // Dark outline around torso
                 fillRect(ox + 9,  ty - 1, 14, 15, 24, 22, 30);
                 // White inner collar shirt
@@ -351,13 +365,8 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
                 fillRect(ox + 23, ayR + 7, 3, 2,  240, 238, 232);
                 fillRect(ox + 23, ayR + 9, 3, 3,  242, 198, 165);
 
-                // 4. Head, Face & Hair (y: 6..20)
-                int hy = oy + 6 + bobY;
-                // Long back hair if applicable
-                if (longHair) {
-                    fillRect(ox + 8, hy + 6, 16, 12, hairR, hairG, hairB);
-                }
-                // Head dark outline
+                // 4. Head, Face & Top Bangs (y: 6..20)
+                // Head dark outline (separates face cleanly from back hair)
                 fillRect(ox + 9,  hy,     14, 14, 24, 22, 30);
                 // Warm skin face
                 fillRect(ox + 10, hy + 2, 12, 11, 245, 204, 172);
@@ -378,12 +387,18 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
                     putPx(ox + 18, hy + 6, 250, 250, 255);
                 }
 
-                // Hair crown and bangs
-                fillRect(ox + 9,  hy - 1, 14, 5, hairR, hairG, hairB);
-                fillRect(ox + 9,  hy + 3, 3,  5, hairR, hairG, hairB);
-                fillRect(ox + 20, hy + 3, 3,  5, hairR, hairG, hairB);
-                fillRect(ox + 13, hy + 3, 2,  2, hairR, hairG, hairB);
-                fillRect(ox + 17, hy + 3, 2,  2, hairR, hairG, hairB);
+                // Hair crown and top forehead bangs (keeping side face outline open so it never looks like a hood)
+                fillRect(ox + 9,  hy - 1, 14, 4, hairR, hairG, hairB);
+                fillRect(ox + 10, hy + 3, 3,  1, hairR, hairG, hairB);
+                fillRect(ox + 14, hy + 3, 4,  1, hairR, hairG, hairB);
+                fillRect(ox + 19, hy + 3, 3,  1, hairR, hairG, hairB);
+                if (longHair) {
+                    // Small teal hair clip on top bangs
+                    fillRect(ox + 19, hy + 1, 2, 1, tieR, tieG, tieB);
+                } else {
+                    fillRect(ox + 9,  hy + 3, 2, 3, hairR, hairG, hairB);
+                    fillRect(ox + 21, hy + 3, 2, 3, hairR, hairG, hairB);
+                }
             }
         }
 
@@ -435,12 +450,12 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
             }
         };
 
-        // Soft dithered portrait background + warm gold frame
+        // Soft dithered portrait background + sleek dark slate frame (no gold outline)
         for (int y = 0; y < PH; ++y) {
             for (int x = 0; x < PW; ++x) {
                 bool border = (x < 2 || x >= PW - 2 || y < 2 || y >= PH - 2);
                 if (border) {
-                    putPx(x, y, 225, 182, 88);
+                    putPx(x, y, 64, 82, 114);
                 } else {
                     int d = ((x + y) % 2) * 6;
                     putPx(x, y,
@@ -451,9 +466,15 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
             }
         }
 
-        // Long hair behind shoulders
+        // Long hair behind head and shoulders (drawn first so it stays in the back)
         if (longHair) {
-            fillRect(10, 14, 28, 28, hairR, hairG, hairB);
+            unsigned char backR = (hairR > 16) ? static_cast<unsigned char>(hairR - 16) : 0;
+            unsigned char backG = (hairG > 10) ? static_cast<unsigned char>(hairG - 10) : 0;
+            unsigned char backB = (hairB > 8)  ? static_cast<unsigned char>(hairB - 8)  : 0;
+            fillRect(9,  12, 30, 32, 24, 22, 30);
+            fillRect(10, 13, 28, 30, backR, backG, backB);
+            fillRect(10, 13, 3,  20, hairR, hairG, hairB);
+            fillRect(35, 13, 3,  20, hairR, hairG, hairB);
         }
 
         // Shoulders & School Uniform Collar (y: 32..46)
@@ -478,14 +499,16 @@ void Texture2D::ensureDefaultTexturesOnDisk() {
         putPx(17, 18, 255, 255, 255);
         putPx(27, 18, 255, 255, 255);
 
-        // Eyebrows & Hair Bangs
+        // Eyebrows & Top Forehead Bangs
         fillRect(16, 16, 5, 1, hairR, hairG, hairB);
         fillRect(27, 16, 5, 1, hairR, hairG, hairB);
-        fillRect(12, 7,  24, 7, hairR, hairG, hairB);
-        fillRect(12, 14, 4,  9, hairR, hairG, hairB);
-        fillRect(32, 14, 4,  9, hairR, hairG, hairB);
-        fillRect(19, 14, 3,  3, hairR, hairG, hairB);
-        fillRect(25, 14, 3,  3, hairR, hairG, hairB);
+        fillRect(12, 7,  24, 6, hairR, hairG, hairB);
+        fillRect(14, 13, 4,  2, hairR, hairG, hairB);
+        fillRect(20, 13, 8,  2, hairR, hairG, hairB);
+        fillRect(30, 13, 4,  2, hairR, hairG, hairB);
+        if (longHair) {
+            fillRect(29, 10, 4, 2, tieR, tieG, tieB);
+        }
 
         writePNGIfMissing(outPath, PW, PH, img);
     };

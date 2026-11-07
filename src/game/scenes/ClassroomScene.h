@@ -51,6 +51,14 @@ public:
     void onSpecialKeyPress(int key);
     void onMouseClick(int button, int state);
 
+    // Developer Mode (activated via key combination Ctrl+Shift+D, Ctrl+D, or typing D-E-V)
+    void toggleDevMode();
+    void executeDevAction(int actionIndex);
+    void bypassCurrentTask();
+    void bypassAllTasks();
+    bool isDevModeUnlocked() const { return m_devModeUnlocked; }
+    bool isDevModeOpen() const { return m_devModeOpen; }
+
     // Automated Phase 5/6 verification helper
     void runPhase5VerificationStep(float dt, engine::camera::Camera3D& camera);
     void runPhase6VerificationStep(float dt, engine::camera::Camera3D& camera);
@@ -72,7 +80,9 @@ private:
     void renderClassroom3D(const engine::camera::Camera3D& camera);
     void renderHallway3D(const engine::camera::Camera3D& camera);
     void renderRainyStreet3D(const engine::camera::Camera3D& camera);
+    void renderDevModeOverlay2D(int screenWidth, int screenHeight) const;
     void drawDeskWithChair3D(float x, float z, float yawDegrees, const engine::assets::Texture2D& woodTex);
+    void drawBench3D(float x, float z, float yawDegrees, float lengthScale, const engine::assets::Texture2D& woodTex);
 
     LocationId                        m_currentLocation;
     int                               m_locationsVisitedMask;
@@ -103,6 +113,7 @@ private:
     engine::renderer::MeshVBO m_meshDeskLeg;
     engine::renderer::MeshVBO m_meshChairSeat;
     engine::renderer::MeshVBO m_meshChairBack;
+    engine::renderer::MeshVBO m_meshChairLeg;
     engine::renderer::MeshVBO m_meshSketchbookProp;
     engine::renderer::MeshVBO m_meshLockerBank;
     engine::renderer::MeshVBO m_meshStoreBuilding;
@@ -124,6 +135,13 @@ private:
     bool  m_useCheckerTexture;
     bool  m_wireframeProps;
     int   m_verifyStep;
+
+    // Developer Mode state & key-combo tracker
+    bool        m_devModeUnlocked;
+    bool        m_devModeOpen;
+    int         m_devMenuCursor;
+    std::string m_keyComboBuffer;
+    bool        m_ctrlDChordLatch;
 };
 
 } // namespace scenes

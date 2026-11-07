@@ -19,6 +19,7 @@
 #include "game/narrative/StoryState.h"
 #include "game/narrative/PhoneSystem.h"
 #include "game/dialogue/DialogueSystem.h"
+#include "game/scenes/ClassroomScene.h"
 
 #include <cmath>
 #include <filesystem>
@@ -206,6 +207,9 @@ void testSaveLoadAndPhone() {
               nearEq(lx, -2.25f) && nearEq(lz, 0.75f) &&
               stateIn.hasFlag("hallway_unlocked") && stateIn.hasFlag("replied_phone_sam"),
               "StoryState::saveToFile and loadFromFile round-trip preserves scene, position, and flags");
+
+    std::error_code ec;
+    std::filesystem::remove(testSavePath, ec);
 }
 
 // ============================================================================
@@ -234,10 +238,15 @@ void testAssetFilesOnDisk() {
         "assets/sprites/portrait_elijah.png",
         "assets/sprites/portrait_maya.png",
         "assets/sprites/portrait_sam.png",
+        "assets/sounds/voice_maya.wav",
+        "assets/sounds/voice_elijah.wav",
+        "assets/sounds/voice_sam.wav",
+        "assets/sounds/voice_narrator.wav",
         "assets/sounds/ui_blip.wav",
         "assets/sounds/dialogue_tick.wav",
         "assets/sounds/chord_strum.wav",
         "assets/sounds/save_chime.wav",
+        "assets/sounds/bgm_theme.mp3",
         "data/dialogue/story_dialogues.txt",
         "data/dialogue/phone_messages.txt"
     };
@@ -249,7 +258,46 @@ void testAssetFilesOnDisk() {
             std::cerr << "  Missing or empty asset file: " << path << std::endl;
         }
     }
-    checkTrue(allExist, "All 22 required PNG textures, sprite sheets, portraits, WAV sounds, and dialogue files exist on disk");
+    checkTrue(allExist, "All 27 required PNG textures, sprite sheets, portraits, WAV/MP3 audio, and dialogue files exist on disk");
+}
+
+// ============================================================================
+// 7. Developer Mode Key Combination, Scene Teleport & Task Bypass Tests
+// ============================================================================
+void testDevModeKeyComboAndBypass() {
+    using game::scenes::ClassroomScene;
+    using game::scenes::LocationId;
+
+    std::cout << "[Suite 7] Developer Mode Key-Combination, Teleport & Task Bypass" << std::endl;
+
+    ClassroomScene scene;
+    checkTrue(!scene.isDevModeUnlocked() && !scene.isDevModeOpen(),
+              "Dev Mode starts locked and closed by default");
+
+    // Activate Dev Mode by typing the sequential key combination 'd' -> 'e' -> 'v'
+    scene.onKeyPress('d');
+    scene.onKeyPress('e');
+    scene.onKeyPress('v');
+    checkTrue(scene.isDevModeUnlocked() && scene.isDevModeOpen(),
+              "Key combination 'D' -> 'E' -> 'V' unlocks and opens Dev Mode Console");
+
+    // Press '4' inside Dev Mode Console to bypass the current stage task (has_sketchbook)
+    scene.onKeyPress('4');
+    checkTrue(scene.getStoryState().hasFlag("has_sketchbook"),
+              "Dev Mode [4] bypasses current stage task (sets has_sketchbook=1)");
+
+    // Press '5' inside Dev Mode Console to bypass ALL tasks & unlock all scenes
+    scene.onKeyPress('5');
+    checkTrue(scene.getStoryState().hasFlag("talked_to_maya") &&
+              scene.getStoryState().hasFlag("talked_to_sam") &&
+              scene.getStoryState().hasFlag("completed_rhythm_minigame") &&
+              scene.getStoryState().hasFlag("story_act1_complete"),
+              "Dev Mode [5] bypasses all tasks across Stages 1-3");
+
+    // Press '3' inside Dev Mode Console to teleport directly to Scene 3 (937 P. Paredes St)
+    scene.onKeyPress('3');
+    checkTrue(scene.getCurrentLocation() == LocationId::RainyStreet && !scene.isDevModeOpen(),
+              "Dev Mode [3] teleports player to LocationId::RainyStreet and closes console");
 }
 
 } // anonymous namespace
@@ -265,6 +313,7 @@ int main() {
     testDialogueAndStoryData();
     testSaveLoadAndPhone();
     testAssetFilesOnDisk();
+    testDevModeKeyComboAndBypass();
 
     std::cout << "==========================================================" << std::endl;
     std::cout << " Unit Tests Summary: " << g_testsPassed << " Passed, "

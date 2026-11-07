@@ -2,3 +2,5 @@ build/
 *.exe
 *.obj
 *.o
+data/saves/*.sav
+

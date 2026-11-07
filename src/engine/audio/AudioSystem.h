@@ -19,9 +19,12 @@ public:
     static void ensureDefaultSoundsOnDisk();
 
     static void play(SoundEvent event);
-    static void setMuted(bool muted) { s_muted = muted; }
+    static void playVoiceBlip(const std::string& speaker, size_t charIndex = 0);
+    static void startBackgroundMusic();
+    static void stopBackgroundMusic();
+    static void setMuted(bool muted);
     static bool isMuted() { return s_muted; }
-    static void toggleMuted() { s_muted = !s_muted; }
+    static void toggleMuted() { setMuted(!s_muted); }
 
 private:
     static bool s_initialized;

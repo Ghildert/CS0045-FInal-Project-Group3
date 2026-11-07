@@ -173,9 +173,11 @@ void reshapeCallback(int width, int height) {
 void keyboardDownCallback(unsigned char key, int x, int y) {
     input::InputManager::onKeyboardDown(key, x, y);
 
-    if (key == 27) { // ESC toggles Pause Menu / exits Demo Mode
+    if (key == 27) { // ESC closes Dev Console / toggles Pause Menu / exits Demo Mode
         if (g_demoMode.isActive()) {
             g_demoMode.setActive(false);
+        } else if (g_menuSystem.getScreen() == ui::MenuScreen::None && g_worldScene.isDevModeOpen()) {
+            g_worldScene.toggleDevMode();
         } else if (g_menuSystem.getScreen() == ui::MenuScreen::None) {
             g_menuSystem.setScreen(ui::MenuScreen::PauseMenu);
         } else if (g_menuSystem.getScreen() == ui::MenuScreen::PauseMenu) {
@@ -193,8 +195,6 @@ void keyboardDownCallback(unsigned char key, int x, int y) {
 
     if (g_demoMode.isActive()) {
         g_demoMode.onKeyPress(key, g_camera);
-    } else if (key == 'c' || key == 'C') {
-        g_camera.setFreeCameraEnabled(!g_camera.isFreeCameraEnabled());
     } else if (key == 'p' || key == 'P') {
         g_camera.cycleProjectionMode();
     } else {

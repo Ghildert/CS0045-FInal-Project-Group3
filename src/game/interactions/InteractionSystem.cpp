@@ -83,20 +83,21 @@ void InteractionManager::render3DIndicators(float timeSeconds, bool showAllDebug
 
     for (size_t i = 0; i < m_items.size(); ++i) {
         bool isActive = (static_cast<int>(i) == m_activeIndex);
-        if (!isActive && !showAllDebug) {
-            continue;
-        }
-
         const auto& item = m_items[i];
-        float bob = std::sin(timeSeconds * 4.2f) * 0.07f;
+        float bob = std::sin(timeSeconds * 4.2f + static_cast<float>(i) * 0.9f) * 0.06f;
 
         // 1. Floating 3D Amber Diamond Marker above the object/NPC (Module 2 GL_TRIANGLES)
+        // Always visible from far away so players can spot interactables from the fixed camera
         glPushMatrix();
         glTranslatef(item.worldX, item.worldY + bob, item.worldZ);
         glRotatef(timeSeconds * 90.0f, 0.0f, 1.0f, 0.0f);
 
-        float s = isActive ? 0.11f : 0.07f;
-        glColor4f(isActive ? 1.0f : 0.6f, isActive ? 0.85f : 0.7f, 0.28f, 0.95f);
+        float s = isActive ? 0.11f : 0.075f;
+        glColor4f(
+            isActive ? 1.0f  : 0.95f,
+            isActive ? 0.88f : 0.76f,
+            isActive ? 0.30f : 0.32f,
+            isActive ? 0.98f : 0.80f);
 
         glBegin(GL_TRIANGLES);
         // Upper pyramid
@@ -111,6 +112,10 @@ void InteractionManager::render3DIndicators(float timeSeconds, bool showAllDebug
         glVertex3f( 0.0f, -s * 1.4f,  0.0f); glVertex3f(-s, 0.0f,  s); glVertex3f(-s, 0.0f, -s);
         glEnd();
         glPopMatrix();
+
+        if (!isActive && !showAllDebug) {
+            continue;
+        }
 
         // 2. Stippled Ground Trigger Ring (Module 2 GL_LINE_LOOP + glLineStipple)
         glEnable(GL_LINE_STIPPLE);
@@ -142,21 +147,21 @@ void InteractionManager::render2DPrompt(int screenWidth, int screenHeight) const
     }
     (void)screenHeight;
 
-    float boxW = 360.0f;
-    float boxH = 42.0f;
+    int textW = engine::ui::TextRenderer::measureBitmapTextWidth(
+        active->promptLabel, GLUT_BITMAP_HELVETICA_18);
+    float boxW = static_cast<float>(textW) + 56.0f;
+    if (boxW < 260.0f) boxW = 260.0f;
+    float boxH = 38.0f;
     float boxX = (static_cast<float>(screenWidth) - boxW) * 0.5f;
-    float boxY = 32.0f;
+    float boxY = 48.0f;
 
-    engine::ui::TextRenderer::drawPanel2D(
+    engine::ui::TextRenderer::drawPillBadge2D(
         boxX, boxY, boxW, boxH,
-        0.08f, 0.09f, 0.15f, 0.90f,
-        0.98f, 0.78f, 0.35f);
-
-    engine::ui::TextRenderer::drawBitmapText2D(
-        boxX + 24.0f, boxY + 14.0f,
         active->promptLabel,
-        GLUT_BITMAP_HELVETICA_18,
-        1.0f, 0.92f, 0.55f);
+        0.07f, 0.12f, 0.22f, 0.95f,
+        0.46f, 0.68f, 0.94f,
+        0.92f, 0.96f, 1.0f,
+        GLUT_BITMAP_HELVETICA_18);
 }
 
 } // namespace interactions

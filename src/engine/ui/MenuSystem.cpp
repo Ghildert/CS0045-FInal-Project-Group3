@@ -19,20 +19,20 @@ void MenuSystem::setScreen(MenuScreen screen) {
 std::vector<std::string> MenuSystem::getCurrentItems() const {
     if (m_screen == MenuScreen::MainMenu) {
         return {
-            "[1] Start Story (Room 304 — November 14)",
-            "[2] Continue / Load Save Slot 1",
-            "[3] Acoustic Guitar Rhythm Minigame",
-            "[4] OpenGL Coursework Demo Mode (Modules 1-8)",
-            "[5] Quit Game"
+            "Start Story (Room 304 - November 14)",
+            "Continue / Load Save Slot 1",
+            "Acoustic Guitar Rhythm Minigame",
+            "OpenGL Coursework Demo Mode (Modules 1-8)",
+            "Quit Game"
         };
     } else if (m_screen == MenuScreen::PauseMenu) {
         return {
-            "[1] Resume Story",
-            "[2] Quick Save Game (Slot 1)",
-            "[3] Quick Load Game (Slot 1)",
-            "[4] OpenGL Coursework Demo Mode (Modules 1-8)",
-            "[5] Return to Main Menu",
-            "[6] Quit Game"
+            "Resume Story",
+            "Quick Save Game (Slot 1)",
+            "Quick Load Game (Slot 1)",
+            "OpenGL Coursework Demo Mode (Modules 1-8)",
+            "Return to Main Menu",
+            "Quit Game"
         };
     }
     return {};
@@ -111,65 +111,121 @@ void MenuSystem::render2D(int screenWidth, int screenHeight) const {
     float w = static_cast<float>(screenWidth);
     float h = static_cast<float>(screenHeight);
 
-    float panelW = 580.0f;
-    float panelH = (m_screen == MenuScreen::MainMenu) ? 410.0f : 445.0f;
+    // HTML/CSS backdrop-filter style darkened overlay
+    TextRenderer::drawAccentBar2D(0.0f, 0.0f, w, h, 0.03f, 0.05f, 0.09f, 0.56f);
+
+    float panelW = (w - 48.0f < 590.0f) ? (w - 48.0f) : 590.0f;
+    float panelH = (m_screen == MenuScreen::MainMenu) ? 438.0f : 482.0f;
+    if (panelH > h - 28.0f) {
+        panelH = h - 28.0f;
+    }
     float panelX = (w - panelW) * 0.5f;
     float panelY = (h - panelH) * 0.5f;
+    float centerX = panelX + panelW * 0.5f;
 
-    TextRenderer::drawPanel2D(
-        panelX, panelY, panelW, panelH,
-        0.04f, 0.05f, 0.11f, 0.94f,
-        0.96f, 0.78f, 0.36f);
+    // Main HTML-styled card container (border-radius: 16px, slate-900 glass fill, sleek 1.4px slate-400 border)
+    TextRenderer::drawRoundedRect2D(
+        panelX, panelY, panelW, panelH, 16.0f,
+        0.06f, 0.09f, 0.16f, 0.95f,
+        0.45f, 0.54f, 0.68f, 0.48f,
+        1.4f, true);
+
+    // Header surface card inside top of modal
+    float headerH = 92.0f;
+    TextRenderer::drawRoundedRect2D(
+        panelX + 12.0f, panelY + panelH - headerH - 12.0f,
+        panelW - 24.0f, headerH, 12.0f,
+        0.09f, 0.13f, 0.23f, 0.92f,
+        0.38f, 0.48f, 0.64f, 0.32f,
+        1.0f, false);
 
     std::string header = (m_screen == MenuScreen::MainMenu)
         ? "ECHOES OF NOVEMBER"
         : "GAME PAUSED";
 
-    TextRenderer::drawStrokeText2D(
-        panelX + 38.0f, panelY + panelH - 56.0f,
+    TextRenderer::drawStrokeTextCentered2D(
+        centerX, panelY + panelH - 54.0f,
         header,
-        0.22f, 2.4f, GLUT_STROKE_ROMAN,
-        1.0f, 0.88f, 0.48f);
+        0.21f, 2.3f, GLUT_STROKE_ROMAN,
+        0.98f, 0.86f, 0.46f);
 
-    TextRenderer::drawBitmapText2D(
-        panelX + 40.0f, panelY + panelH - 86.0f,
-        "2.5D Pixel-Art Narrative Adventure  |  CS0045 Computer Graphics & Visual Computing",
+    TextRenderer::drawBitmapTextCentered2D(
+        centerX, panelY + panelH - 84.0f,
+        "2.5D Pixel-Art Narrative Adventure   |   CS0045 Visual Computing",
         GLUT_BITMAP_HELVETICA_12,
-        0.82f, 0.90f, 0.98f);
+        0.74f, 0.84f, 0.95f);
 
     auto items = getCurrentItems();
+    float listTopY = panelY + panelH - 160.0f;
     for (size_t i = 0; i < items.size(); ++i) {
         bool selected = (static_cast<int>(i) == m_selectedIndex);
-        float btnW = panelW - 76.0f;
+        float btnW = panelW - 56.0f;
         float btnH = 42.0f;
-        float btnX = panelX + 38.0f;
-        float btnY = panelY + panelH - 150.0f - static_cast<float>(i) * 50.0f;
+        float btnX = panelX + 28.0f;
+        float btnY = listTopY - static_cast<float>(i) * 48.0f;
 
-        TextRenderer::drawPanel2D(
-            btnX, btnY, btnW, btnH,
-            selected ? 0.20f : 0.09f,
-            selected ? 0.16f : 0.11f,
-            selected ? 0.32f : 0.19f,
+        // HTML Button styling (rounded 10px, smooth hover/focus ring without gold outline)
+        TextRenderer::drawRoundedRect2D(
+            btnX, btnY, btnW, btnH, 10.0f,
+            selected ? 0.13f : 0.08f,
+            selected ? 0.22f : 0.11f,
+            selected ? 0.38f : 0.20f,
             0.96f,
-            selected ? 1.0f  : 0.45f,
-            selected ? 0.84f : 0.58f,
-            selected ? 0.36f : 0.72f);
+            selected ? 0.48f : 0.36f,
+            selected ? 0.74f : 0.44f,
+            selected ? 0.98f : 0.56f,
+            selected ? 0.85f : 0.38f,
+            selected ? 1.6f  : 1.0f,
+            selected);
 
-        std::string label = (selected ? ">  " : "   ") + items[i];
+        // Keycap pill badge on the left of each menu button
+        std::string keyBadge = std::to_string(i + 1);
+        TextRenderer::drawPillBadge2D(
+            btnX + 12.0f, btnY + 9.0f, 28.0f, 24.0f,
+            keyBadge,
+            selected ? 0.22f : 0.12f,
+            selected ? 0.46f : 0.17f,
+            selected ? 0.78f : 0.28f,
+            0.98f,
+            selected ? 0.54f : 0.42f,
+            selected ? 0.78f : 0.52f,
+            selected ? 0.98f : 0.65f,
+            selected ? 0.96f : 0.78f,
+            selected ? 0.98f : 0.84f,
+            selected ? 1.0f  : 0.92f,
+            GLUT_BITMAP_HELVETICA_12);
+
         TextRenderer::drawBitmapText2D(
-            btnX + 18.0f, btnY + 14.0f,
-            label,
+            btnX + 52.0f, btnY + 14.0f,
+            items[i],
             GLUT_BITMAP_HELVETICA_18,
-            selected ? 1.0f : 0.85f,
-            selected ? 0.92f : 0.88f,
-            selected ? 0.48f : 0.94f);
+            selected ? 0.96f : 0.84f,
+            selected ? 0.98f : 0.89f,
+            selected ? 1.0f  : 0.95f);
+
+        if (selected) {
+            TextRenderer::drawPillBadge2D(
+                btnX + btnW - 68.0f, btnY + 10.0f, 54.0f, 22.0f,
+                "ENTER",
+                0.18f, 0.28f, 0.45f, 0.92f,
+                0.56f, 0.76f, 0.96f,
+                0.92f, 0.96f, 1.0f,
+                GLUT_BITMAP_HELVETICA_10);
+        }
     }
 
-    TextRenderer::drawBitmapText2D(
-        panelX + 40.0f, panelY + 20.0f,
-        "Navigate: [Up/Down Arrows] or [1..5]  |  Confirm: [Enter / E / Space]  |  Pause: [ESC]",
+    // Subtle footer pill bar
+    TextRenderer::drawRoundedRect2D(
+        panelX + 28.0f, panelY + 14.0f, panelW - 56.0f, 28.0f, 8.0f,
+        0.05f, 0.07f, 0.13f, 0.85f,
+        0.35f, 0.44f, 0.58f, 0.28f,
+        1.0f, false);
+
+    TextRenderer::drawBitmapTextCentered2D(
+        centerX, panelY + 23.0f,
+        "Navigate: [Up / Down] or [1..5]    |    Confirm: [Enter / E / Space]    |    Pause: [ESC]",
         GLUT_BITMAP_HELVETICA_12,
-        0.72f, 0.84f, 0.92f);
+        0.68f, 0.80f, 0.92f);
 }
 
 } // namespace ui

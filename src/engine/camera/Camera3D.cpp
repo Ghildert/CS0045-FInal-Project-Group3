@@ -13,27 +13,28 @@ Camera3D::Camera3D()
     , m_viewportHeight(720)
     , m_projMode(ProjectionMode::PerspectiveGLU)
     , m_freeCamera(false)
-    , m_fovDegrees(42.0f)
+    , m_fovDegrees(45.0f)
     , m_nearPlane(0.1f)
-    , m_farPlane(100.0f)
-    , m_orthoScale(3.6f)
-    , m_eyeX(0.0f), m_eyeY(2.3f), m_eyeZ(6.8f)
-    , m_targetX(0.0f), m_targetY(1.2f), m_targetZ(0.0f)
+    , m_farPlane(250.0f)
+    , m_orthoScale(3.8f)
+    , m_eyeX(0.0f), m_eyeY(3.29f), m_eyeZ(7.03f)
+    , m_targetX(0.0f), m_targetY(1.30f), m_targetZ(-0.15f)
     , m_upX(0.0f), m_upY(1.0f), m_upZ(0.0f)
     , m_yawDegrees(0.0f)
-    , m_pitchDegrees(14.0f)
-    , m_distance(6.8f)
+    , m_pitchDegrees(15.5f)
+    , m_distance(7.45f)
 {
     recomputeEyeFromSpherical();
 }
 
 void Camera3D::resetToDefault25D() {
+    m_freeCamera   = false;
     m_targetX      = 0.0f;
-    m_targetY      = 1.25f;
-    m_targetZ      = 0.0f;
+    m_targetY      = 1.30f;
+    m_targetZ      = -0.15f;
     m_yawDegrees   = 0.0f;
-    m_pitchDegrees = 13.5f;
-    m_distance     = 6.8f;
+    m_pitchDegrees = 15.5f;
+    m_distance     = 7.45f;
     recomputeEyeFromSpherical();
 }
 
@@ -117,29 +118,29 @@ void Camera3D::end2DOverlay() {
 }
 
 void Camera3D::updateFreeOrbit(float dt) {
+    if (!m_freeCamera) {
+        return;
+    }
+
     using input::InputManager;
 
     const float panSpeed   = 3.2f * dt;
     const float orbitSpeed = 65.0f * dt;
     const float zoomSpeed  = 4.5f * dt;
 
-    // In Free Camera mode, Arrow keys orbit camera yaw and pitch
-    if (m_freeCamera) {
-        if (InputManager::isSpecialDown(GLUT_KEY_LEFT)) {
-            m_yawDegrees -= orbitSpeed;
-        }
-        if (InputManager::isSpecialDown(GLUT_KEY_RIGHT)) {
-            m_yawDegrees += orbitSpeed;
-        }
-        if (InputManager::isSpecialDown(GLUT_KEY_UP)) {
-            m_pitchDegrees += orbitSpeed * 0.7f;
-        }
-        if (InputManager::isSpecialDown(GLUT_KEY_DOWN)) {
-            m_pitchDegrees -= orbitSpeed * 0.7f;
-        }
+    if (InputManager::isSpecialDown(GLUT_KEY_LEFT)) {
+        m_yawDegrees -= orbitSpeed;
+    }
+    if (InputManager::isSpecialDown(GLUT_KEY_RIGHT)) {
+        m_yawDegrees += orbitSpeed;
+    }
+    if (InputManager::isSpecialDown(GLUT_KEY_UP)) {
+        m_pitchDegrees += orbitSpeed * 0.7f;
+    }
+    if (InputManager::isSpecialDown(GLUT_KEY_DOWN)) {
+        m_pitchDegrees -= orbitSpeed * 0.7f;
     }
 
-    // Right mouse drag orbits camera smoothly in any mode
     if (InputManager::isMouseButtonDown(GLUT_RIGHT_BUTTON)) {
         m_yawDegrees   -= static_cast<float>(InputManager::getMouseDeltaX()) * 0.35f;
         m_pitchDegrees += static_cast<float>(InputManager::getMouseDeltaY()) * 0.25f;
@@ -148,15 +149,12 @@ void Camera3D::updateFreeOrbit(float dt) {
     if (m_pitchDegrees < 3.0f)  m_pitchDegrees = 3.0f;
     if (m_pitchDegrees > 75.0f) m_pitchDegrees = 75.0f;
 
-    // Q/E zoom and WASD target pan only when Free Camera mode [C] is active
-    if (m_freeCamera) {
-        if (InputManager::isKeyDown('q') || InputManager::isKeyDown('=')) m_distance -= zoomSpeed;
-        if (InputManager::isKeyDown('e') || InputManager::isKeyDown('-')) m_distance += zoomSpeed;
-        if (InputManager::isKeyDown('a')) m_targetX -= panSpeed;
-        if (InputManager::isKeyDown('d')) m_targetX += panSpeed;
-        if (InputManager::isKeyDown('w')) m_targetZ -= panSpeed;
-        if (InputManager::isKeyDown('s')) m_targetZ += panSpeed;
-    }
+    if (InputManager::isKeyDown('q') || InputManager::isKeyDown('=')) m_distance -= zoomSpeed;
+    if (InputManager::isKeyDown('e') || InputManager::isKeyDown('-')) m_distance += zoomSpeed;
+    if (InputManager::isKeyDown('a')) m_targetX -= panSpeed;
+    if (InputManager::isKeyDown('d')) m_targetX += panSpeed;
+    if (InputManager::isKeyDown('w')) m_targetZ -= panSpeed;
+    if (InputManager::isKeyDown('s')) m_targetZ += panSpeed;
 
     if (m_distance < 2.2f)  m_distance = 2.2f;
     if (m_distance > 16.0f) m_distance = 16.0f;
@@ -165,10 +163,11 @@ void Camera3D::updateFreeOrbit(float dt) {
 }
 
 void Camera3D::setNarrativeTarget(float targetX, float targetY, float targetZ, float dt) {
-    float smooth = (dt * 5.0f > 1.0f) ? 1.0f : (dt * 5.0f);
-    m_targetX += (targetX - m_targetX) * smooth;
-    m_targetY += (targetY - m_targetY) * smooth;
-    m_targetZ += (targetZ - m_targetZ) * smooth;
+    (void)targetX;
+    (void)targetY;
+    (void)targetZ;
+    (void)dt;
+    // Camera remains locked in 1 fixed position so the entire scene is visible without camera movement
     recomputeEyeFromSpherical();
 }
 

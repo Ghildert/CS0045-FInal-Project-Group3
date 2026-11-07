@@ -223,15 +223,15 @@ void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
     float boardX = (w - boardW) * 0.5f;
     float boardY = (h - boardH) * 0.5f;
 
-    // 1. Acoustic Fretboard Stage Panel
+    // 1. Acoustic Fretboard Stage Panel (sleek slate outline, no gold)
     engine::ui::TextRenderer::drawPanel2D(
         boardX, boardY, boardW, boardH,
-        0.05f, 0.06f, 0.11f, 0.95f,
-        0.96f, 0.78f, 0.36f);
+        0.05f, 0.08f, 0.15f, 0.95f,
+        0.44f, 0.56f, 0.74f);
 
     // 2. Vector Stroke Header Title (Module 3 glutStrokeString + Module 7 glTranslatef/glScalef)
-    engine::ui::TextRenderer::drawStrokeText2D(
-        boardX + 26.0f, boardY + boardH - 42.0f,
+    engine::ui::TextRenderer::drawStrokeTextCentered2D(
+        boardX + boardW * 0.5f, boardY + boardH - 42.0f,
         "ACOUSTIC RHYTHM SESSION - ECHOES IN THE RAIN",
         0.13f, 2.0f, GLUT_STROKE_ROMAN,
         1.0f, 0.88f, 0.48f);
@@ -241,8 +241,8 @@ void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
     stats << "Score: " << m_score
           << "   |   Combo: " << m_combo << "x (Max " << m_maxCombo << "x)"
           << "   |   Notes Hit: " << m_notesHit << "/" << m_notes.size();
-    engine::ui::TextRenderer::drawBitmapText2D(
-        boardX + 28.0f, boardY + boardH - 70.0f,
+    engine::ui::TextRenderer::drawBitmapTextCentered2D(
+        boardX + boardW * 0.5f, boardY + boardH - 70.0f,
         stats.str(), GLUT_BITMAP_HELVETICA_18,
         0.92f, 0.96f, 1.0f);
 
@@ -405,14 +405,14 @@ void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
 
     // 8. Live Judgment Banner & Footer Instructions
     if (m_judgmentTimer > 0.0f && !m_lastJudgment.empty()) {
-        engine::ui::TextRenderer::drawBitmapText2D(
-            boardX + 220.0f, boardY + 22.0f,
+        engine::ui::TextRenderer::drawBitmapTextCentered2D(
+            boardX + boardW * 0.5f, boardY + 22.0f,
             m_lastJudgment,
             GLUT_BITMAP_HELVETICA_18,
             1.0f, 0.92f, 0.45f);
     } else {
-        engine::ui::TextRenderer::drawBitmapText2D(
-            boardX + 125.0f, boardY + 20.0f,
+        engine::ui::TextRenderer::drawBitmapTextCentered2D(
+            boardX + boardW * 0.5f, boardY + 20.0f,
             "Press [D/F/J/K] or [1/2/3/4] as notes cross the rings! ([Backspace] Exit)",
             GLUT_BITMAP_HELVETICA_12,
             0.78f, 0.86f, 0.94f);
