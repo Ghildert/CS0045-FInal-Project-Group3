@@ -1,11 +1,20 @@
 #include "game/minigames/RhythmMinigame.h"
+#ifndef ECHOES_HEADLESS_TEST
 #include "engine/renderer/PrimitiveRenderer.h"
+#endif
+#ifndef ECHOES_HEADLESS_TEST
 #include "engine/ui/TextRenderer.h"
+#endif
 #include "engine/audio/AudioSystem.h"
+#ifndef ECHOES_HEADLESS_TEST
 #include <GL/glew.h>
+#endif
+#ifndef ECHOES_HEADLESS_TEST
 #include <GL/freeglut.h>
+#endif
 #include <cmath>
 #include <sstream>
+#include <algorithm>
 
 namespace game {
 namespace minigames {
@@ -32,22 +41,58 @@ void RhythmMinigame::buildAcousticSongChart() {
     m_notes.clear();
     m_bursts.clear();
 
-    // 16-note melodic arpeggio chart ("Echoes of November" Acoustic Motif)
-    const int   lanes[16] = { 0, 1, 2, 3,  2, 1, 0, 2,  1, 3, 2, 0,  1, 2, 3, 2 };
+    // IMPROVEMENT 3: Different density, patterns, and scroll speeds per chart.
+    const int lanes[16] = {0, 1, 2, 3, 2, 1, 0, 2, 1, 3, 2, 0, 1, 2, 3, 2};
     const float times[16] = {
-        1.0f, 1.5f, 2.0f, 2.5f,
-        3.1f, 3.6f, 4.1f, 4.6f,
-        5.2f, 5.7f, 6.2f, 6.7f,
-        7.3f, 7.8f, 8.3f, 8.8f
+        1.0f, 1.5f, 2.0f, 2.5f, 3.1f, 3.6f, 4.1f, 4.6f,
+        5.2f, 5.7f, 6.2f, 6.7f, 7.3f, 7.8f, 8.3f, 8.8f
     };
-
-    for (int i = 0; i < 16; ++i) {
-        m_notes.push_back(RhythmNote{ lanes[i], times[i], false, false });
+    if (m_difficulty == RhythmDifficulty::Easy) {
+        const int easyLanes[8] = {0, 1, 2, 3, 0, 2, 1, 3};
+        for (int i = 0; i < 8; ++i)
+            m_notes.push_back({easyLanes[i], 1.5f + i * 1.0f, false, false});
+    } else if (m_difficulty == RhythmDifficulty::Hard) {
+        const int hardLanes[16] = {0, 2, 1, 3, 2, 0, 3, 1, 0, 3, 1, 2, 3, 0, 2, 1};
+        for (int i = 0; i < 32; ++i)
+            m_notes.push_back({hardLanes[i % 16], 1.5f + i * 0.25f, false, false});
+    } else {
+        for (int i = 0; i < 16; ++i)
+            m_notes.push_back({lanes[i], times[i], false, false});
     }
-    m_songDuration = 9.4f;
+    // Leave enough time for the last note's entire hit window.
+    m_songDuration = m_notes.back().hitTime + goodWindow() + 0.30f;
 }
 
+// IMPROVEMENT 3: Select a timing difficulty before each playable session.
+float RhythmMinigame::getScrollSpeed() const {
+    return m_difficulty == RhythmDifficulty::Easy ? 155.0f :
+        m_difficulty == RhythmDifficulty::Hard ? 300.0f : 215.0f;
+}
+float RhythmMinigame::goodWindow() const {
+    return m_difficulty == RhythmDifficulty::Easy ? 0.40f :
+        m_difficulty == RhythmDifficulty::Hard ? 0.18f : 0.30f;
+}
+float RhythmMinigame::perfectWindow() const {
+    return m_difficulty == RhythmDifficulty::Easy ? 0.20f :
+        m_difficulty == RhythmDifficulty::Hard ? 0.08f : 0.14f;
+}
+const char* RhythmMinigame::getDifficultyName() const {
+    return m_difficulty == RhythmDifficulty::Easy ? "Easy" :
+        m_difficulty == RhythmDifficulty::Hard ? "Hard" : "Normal";
+}
+std::string RhythmMinigame::getHighScoreKey() const {
+    if (m_difficulty == RhythmDifficulty::Normal) return "rhythm_high_score";
+    return m_difficulty == RhythmDifficulty::Easy
+        ? "rhythm_high_score_easy_v2" : "rhythm_high_score_hard_v2";
+}
 void RhythmMinigame::startSession() {
+    startSession(m_difficulty);
+    m_selectingDifficulty = true;
+}
+void RhythmMinigame::startSession(RhythmDifficulty difficulty) {
+    m_difficulty = difficulty;
+    m_selectingDifficulty = false;
+    m_bestScore = 0;
     buildAcousticSongChart();
     m_active        = true;
     m_finished      = false;
@@ -76,8 +121,8 @@ void RhythmMinigame::triggerLaneInput(int lane, narrative::StoryState& storyStat
     m_laneFlashTimer[lane] = 0.22f;
 
     // Find closest unresolved note in this lane within hit window
-    constexpr float kPerfectWindow = 0.14f;
-    constexpr float kGoodWindow    = 0.30f;
+    const float kPerfectWindow = perfectWindow();
+    const float kGoodWindow = goodWindow();
 
     int   bestIdx  = -1;
     float bestDiff = 1e9f;
@@ -117,7 +162,7 @@ void RhythmMinigame::triggerLaneInput(int lane, narrative::StoryState& storyStat
 }
 
 void RhythmMinigame::update(float dt, narrative::StoryState& storyState) {
-    if (!m_active) {
+    if (!m_active || !std::isfinite(dt) || dt < 0.0f) {
         return;
     }
 
@@ -146,11 +191,13 @@ void RhythmMinigame::update(float dt, narrative::StoryState& storyState) {
         return;
     }
 
+    m_bestScore = storyState.getFlag(getHighScoreKey());
+    if (m_selectingDifficulty) return;
     m_songTime += dt;
 
     // Check for missed notes past the hit window
     for (auto& note : m_notes) {
-        if (!note.resolved && (m_songTime - note.hitTime) > 0.32f) {
+        if (!note.resolved && (m_songTime - note.hitTime) > goodWindow() + 0.02f) {
             note.resolved   = true;
             note.wasHit     = false;
             m_combo         = 0;
@@ -166,7 +213,9 @@ void RhythmMinigame::update(float dt, narrative::StoryState& storyState) {
         m_lastJudgment  = "SONG COMPLETE! Press [E] or [Enter] to Return";
         m_judgmentTimer = 10.0f;
         storyState.setFlag("completed_rhythm_minigame", 1);
-        storyState.setFlag("rhythm_high_score", m_score);
+        // IMPROVEMENT 1: A lower replay score never replaces the best score.
+        m_bestScore = std::max(storyState.getFlag(getHighScoreKey()), m_score);
+        storyState.setFlag(getHighScoreKey(), m_bestScore);
         storyState.showToast("Acoustic Song Complete! Score: " + std::to_string(m_score), 4.0f);
     }
 }
@@ -175,6 +224,7 @@ void RhythmMinigame::autoPlayStep(float dt, narrative::StoryState& storyState) {
     if (!m_active) {
         return;
     }
+    m_selectingDifficulty = false; // Automated verification bypasses the chooser.
     // Automatically hit any note within 0.08s of current songTime for automated verification
     for (const auto& note : m_notes) {
         if (!note.resolved && std::fabs(note.hitTime - m_songTime) <= 0.08f) {
@@ -198,9 +248,21 @@ void RhythmMinigame::onKeyPress(unsigned char key, narrative::StoryState& storyS
 
     // Exit early with Backspace (8)
     if (key == 8) {
-        m_finished = true;
-        storyState.setFlag("completed_rhythm_minigame", 1);
+        // IMPROVEMENT 2: Cancelling leaves completion flags unchanged.
         stopSession();
+        storyState.showToast("Practice ended. Return to the guitar to try again.");
+        return;
+    }
+
+    if (m_selectingDifficulty) {
+        if (key >= '1' && key <= '3') {
+            m_difficulty = static_cast<RhythmDifficulty>(key - '1');
+            buildAcousticSongChart(); // Rebuild the preview and the chart actually played.
+            m_bestScore = storyState.getFlag(getHighScoreKey());
+        } else if (key == 13 || key == ' ') {
+            startSession(m_difficulty); // Reset note state and timing for the chosen chart.
+            m_bestScore = storyState.getFlag(getHighScoreKey());
+        }
         return;
     }
 
@@ -210,6 +272,7 @@ void RhythmMinigame::onKeyPress(unsigned char key, narrative::StoryState& storyS
     if (key == 'k' || key == 'K' || key == '4') triggerLaneInput(3, storyState);
 }
 
+#ifndef ECHOES_HEADLESS_TEST
 void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
     if (!m_active) {
         return;
@@ -238,20 +301,37 @@ void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
 
     // Score, Combo & Progress readout
     std::ostringstream stats;
-    stats << "Score: " << m_score
+    stats << getDifficultyName() << " | Best: " << m_bestScore
+          << " | Score: " << m_score
           << "   |   Combo: " << m_combo << "x (Max " << m_maxCombo << "x)"
           << "   |   Notes Hit: " << m_notesHit << "/" << m_notes.size();
     engine::ui::TextRenderer::drawBitmapTextCentered2D(
         boardX + boardW * 0.5f, boardY + boardH - 70.0f,
-        stats.str(), GLUT_BITMAP_HELVETICA_18,
+        stats.str(), GLUT_BITMAP_HELVETICA_12,
         0.92f, 0.96f, 1.0f);
+
+    if (m_selectingDifficulty) {
+        engine::ui::TextRenderer::drawBitmapTextCentered2D(
+            boardX + boardW * 0.5f, boardY + 300.0f,
+            "Choose difficulty: [1] Easy   [2] Normal   [3] Hard",
+            GLUT_BITMAP_HELVETICA_18, 0.95f, 0.95f, 1.0f);
+        engine::ui::TextRenderer::drawBitmapTextCentered2D(
+            boardX + boardW * 0.5f, boardY + 255.0f,
+            std::string("Selected: ") + getDifficultyName() + " | " + std::to_string(m_notes.size()) + " notes | " + std::to_string(static_cast<int>(getScrollSpeed())) + " px/s",
+            GLUT_BITMAP_HELVETICA_18, 1.0f, 0.88f, 0.48f);
+        engine::ui::TextRenderer::drawBitmapTextCentered2D(
+            boardX + boardW * 0.5f, boardY + 205.0f,
+            "[Enter] Start song   |   [Backspace] Cancel",
+            GLUT_BITMAP_HELVETICA_18, 0.90f, 0.95f, 1.0f);
+        return;
+    }
 
     // 3. Draw Fretboard Lanes, Stippled Measure Bars, Target Hit Rings & Scrolling Notes
     const float laneStartX = boardX + 145.0f;
     const float laneSpacing = 130.0f;
     const float trackTopY   = boardY + boardH - 96.0f;
     const float hitLineY    = boardY + 95.0f;
-    const float scrollSpeed = 215.0f; // Pixels per second
+    const float scrollSpeed = getScrollSpeed(); // Pixels per second
 
     const char* keyLabels[4] = { "[D / 1]", "[F / 2]", "[J / 3]", "[K / 4]" };
     const float laneColors[4][3] = {
@@ -418,6 +498,8 @@ void RhythmMinigame::render2D(int screenWidth, int screenHeight) const {
             0.78f, 0.86f, 0.94f);
     }
 }
+
+#endif // ECHOES_HEADLESS_TEST
 
 } // namespace minigames
 } // namespace game
