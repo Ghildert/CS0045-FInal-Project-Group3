@@ -8,6 +8,8 @@
 namespace game {
 namespace minigames {
 
+enum class RhythmDifficulty { Easy, Normal, Hard };
+
 struct RhythmNote {
     int   lane;      // 0..3 corresponding to [D/1], [F/2], [J/3], [K/4]
     float hitTime;   // Time in seconds when note crosses the hit line
@@ -26,6 +28,16 @@ public:
     RhythmMinigame();
 
     void startSession();
+    void startSession(RhythmDifficulty difficulty);
+    bool isSelectingDifficulty() const { return m_selectingDifficulty; }
+    RhythmDifficulty getDifficulty() const { return m_difficulty; }
+    const char* getDifficultyName() const;
+    std::string getHighScoreKey() const;
+    float goodWindow() const;
+    float perfectWindow() const;
+    float getScrollSpeed() const;
+    float getSongTime() const { return m_songTime; }
+    const std::vector<RhythmNote>& getNotes() const { return m_notes; }
     void stopSession();
 
     void update(float dt, narrative::StoryState& storyState);
@@ -49,6 +61,9 @@ private:
     void buildAcousticSongChart();
     void triggerLaneInput(int lane, narrative::StoryState& storyState);
 
+    RhythmDifficulty m_difficulty = RhythmDifficulty::Normal;
+    bool m_selectingDifficulty = false;
+    int m_bestScore = 0;
     bool                        m_active;
     bool                        m_finished;
     float                       m_songTime;
