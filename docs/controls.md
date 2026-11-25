@@ -1,4 +1,4 @@
-# Controls & Debug Shortcuts — Echoes of November
+# Controls & Debug Shortcuts — Group 3 Final Project
 
 ## 1. General, Menu & Window Controls
 

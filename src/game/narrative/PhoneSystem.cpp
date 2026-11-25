@@ -18,7 +18,7 @@ PhoneSystem::PhoneSystem()
 void PhoneSystem::ensureDefaultPhoneDataOnDisk(const std::string& filePath) {
     std::filesystem::create_directories(std::filesystem::path(filePath).parent_path());
     std::ofstream out(filePath);
-    out << "# Echoes of November - Smartphone Messaging Data\n";
+    out << "# Group 3 Final Project - Smartphone Messaging Data\n";
     out << "THREAD|Sam (Band Club)|replied_phone_sam\n";
     out << "MSG|Sam|Yo Elijah! Are you and Maya bringing the acoustic guitar to the rooftop?\n";
     out << "MSG|Sam|Rain's starting soon, let me know if you're still in Room 304!\n";

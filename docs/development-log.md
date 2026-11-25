@@ -214,7 +214,7 @@
 2. **Synthesized PCM WAV Audio System (`src/engine/audio/AudioSystem.h`, `AudioSystem.cpp`):**
    - Generates 4 original 16-bit PCM WAV files (`assets/sounds/ui_blip.wav`, `assets/sounds/interact_chime.wav`, `assets/sounds/phone_notify.wav`, `assets/sounds/guitar_strum.wav`) on disk if missing and plays them asynchronously via WinMM (`PlaySoundA(..., SND_FILENAME | SND_ASYNC | SND_NODEFAULT)`).
 3. **Automated Unit Test Suite (`tests/unit_tests.cpp`):**
-   - Registered with CTest (`EchoesUnitTests`, `.\build\UnitTests.exe`).
+   - Registered with CTest (`Group3UnitTests`, `.\build\UnitTests.exe`).
    - Executes 18 automated assertions across 6 suites:
      - Suite 1: `Mat4` & `Vec4` homogeneous coordinate math ($w=1$ vs. $w=0$, matrix addition, subtraction, scalar product, matrix-matrix product, rotation).
      - Suite 2: `AABB3D` 3D intersection and `CollisionWorld::resolveMovementXZ` axis-separated sliding collision.

@@ -1,4 +1,4 @@
-# Echoes of November - External Branching Narrative Data (Locations 1-3)
+# Group 3 Final Project - External Branching Narrative Data (Locations 1-3)
 # Format:
 # NODE|node_id|completion_flag_key|completion_flag_val
 # LINE|speaker|dialogue_text
@@ -22,7 +22,7 @@ LINE|Maya|Check your sketchbook on the front-left desk - I think you wrote somet
 
 NODE|inspect_sketchbook|has_sketchbook|1
 LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.
-LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 - Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'
+LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 - Meet Sam in the hallway, then the food stalls outside FEU Tech at 5:30 PM.'
 LINE|System|[Obtained Sketchbook & Chords - Flag 'has_sketchbook' = 1]
 
 NODE|inspect_sketchbook_taken|inspected_desk_again|1
@@ -58,12 +58,12 @@ LINE|Elijah|I've got my sketchbook and checked in with Maya. Stepping out into t
 NODE|sam_hallway_talk|talked_to_sam|1
 LINE|Sam|There you are, Elijah! Did you bring the chord progression from Room 304?
 LINE|Elijah|Got it right here in my sketchbook. Why are we packing up by the lockers?
-LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to Sundown Mart.
-CHOICE|Let's practice under the convenience store awning.|sam_branch_awning|street_unlocked|1
+LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to the food stalls on P. Paredes Street.
+CHOICE|Let's practice under the food stall canopy.|sam_branch_awning|street_unlocked|1
 CHOICE|Want to test the rhythm timing right here first?|sam_branch_rhythm|street_unlocked|1
 
 NODE|sam_branch_awning|street_unlocked|1
-LINE|Elijah|The neon canopy outside Sundown Mart is dry and has benches. Let's meet Maya down on the street.
+LINE|Elijah|The food stalls beside FEU Tech have a canopy and stools. Let's meet Maya there.
 LINE|Sam|Good call! Take the stairwell exit on the right end of the corridor whenever you're ready.
 
 NODE|sam_branch_rhythm|street_unlocked|1

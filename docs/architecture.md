@@ -2,7 +2,7 @@
 
 ## 1. Architectural Philosophy
 
-**Echoes of November** is an original 2.5D narrative adventure game built directly on **C++17** and **OpenGL (Compatibility Profile)** with **FreeGLUT** and **GLEW**.
+**Group 3 Final Project** is an original 2.5D narrative adventure game built directly on **C++17** and **OpenGL (Compatibility Profile)** with **FreeGLUT** and **GLEW**.
 
 In accordance with the project master plan:
 - **No Heavyweight Engine:** The architecture avoids general-purpose engine bloat and uses focused, readable subsystems tailored for a 2.5D narrative game and academic defense.

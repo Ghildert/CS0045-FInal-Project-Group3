@@ -41,7 +41,7 @@ void DialogueSystem::initPortraitsAndData(const std::string& filePath) {
 void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
     std::filesystem::create_directories(std::filesystem::path(filePath).parent_path());
     std::ofstream out(filePath);
-    out << "# Echoes of November - External Branching Narrative Data (Locations 1-3)\n";
+    out << "# Group 3 Final Project - External Branching Narrative Data (Locations 1-3)\n";
     out << "# Format:\n";
     out << "# NODE|node_id|completion_flag_key|completion_flag_val\n";
     out << "# LINE|speaker|dialogue_text\n";
@@ -68,7 +68,7 @@ void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
 
     out << "NODE|inspect_sketchbook|has_sketchbook|1\n";
     out << "LINE|Elijah|My hardcover sketchbook. A loose sheet of 3D perspective studies is tucked inside.\n";
-    out << "LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 - Meet Sam in the hallway, then Sundown Mart at 5:30 PM.'\n";
+    out << "LINE|Elijah|In the margin, my own handwriting says: 'Nov 14 - Meet Sam in the hallway, then the food stalls outside FEU Tech at 5:30 PM.'\n";
     out << "LINE|System|[Obtained Sketchbook & Chords - Flag 'has_sketchbook' = 1]\n\n";
 
     out << "NODE|inspect_sketchbook_taken|inspected_desk_again|1\n";
@@ -107,12 +107,12 @@ void DialogueSystem::ensureDefaultStoryFileOnDisk(const std::string& filePath) {
     out << "NODE|sam_hallway_talk|talked_to_sam|1\n";
     out << "LINE|Sam|There you are, Elijah! Did you bring the chord progression from Room 304?\n";
     out << "LINE|Elijah|Got it right here in my sketchbook. Why are we packing up by the lockers?\n";
-    out << "LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to Sundown Mart.\n";
-    out << "CHOICE|Let's practice under the convenience store awning.|sam_branch_awning|street_unlocked|1\n";
+    out << "LINE|Sam|Security locked the rooftop stairs because of the thunderstorm warning! Maya already headed down to the food stalls on P. Paredes Street.\n";
+    out << "CHOICE|Let's practice under the food stall canopy.|sam_branch_awning|street_unlocked|1\n";
     out << "CHOICE|Want to test the rhythm timing right here first?|sam_branch_rhythm|street_unlocked|1\n\n";
 
     out << "NODE|sam_branch_awning|street_unlocked|1\n";
-    out << "LINE|Elijah|The neon canopy outside Sundown Mart is dry and has benches. Let's meet Maya down on the street.\n";
+    out << "LINE|Elijah|The food stalls beside FEU Tech have a canopy and stools. Let's meet Maya there.\n";
     out << "LINE|Sam|Good call! Take the stairwell exit on the right end of the corridor whenever you're ready.\n\n";
 
     out << "NODE|sam_branch_rhythm|street_unlocked|1\n";

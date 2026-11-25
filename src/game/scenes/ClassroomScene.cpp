@@ -374,7 +374,7 @@ void ClassroomScene::runPhase5VerificationStep(float dt, engine::camera::Camera3
         if (m_dialogue.isActive()) {
             m_dialogue.advanceOrCompleteLine(&m_storyState);
         } else {
-            // Transition to Location 3 (Rainy Street / Sundown Mart)
+            // Transition to Location 3 (Rainy P. Paredes Street)
             switchLocation(LocationId::RainyStreet, -2.5f, 0.8f, false);
             m_dialogue.startDialogue("maya_street_talk");
             m_verifyStep = 3;

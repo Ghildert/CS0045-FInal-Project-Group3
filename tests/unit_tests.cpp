@@ -1,6 +1,6 @@
 /**
  * CS0045 Computer Graphics and Visual Computing
- * "Echoes of November" - Automated Unit Test Suite (Phase 8 Verification)
+ * "Group 3 Final Project" - Automated Unit Test Suite (Phase 8 Verification)
  *
  * Tests:
  * 1. Matrix and transformation calculations (Module 6 Mat4 & homogeneous Vec4)
@@ -304,7 +304,7 @@ void testDevModeKeyComboAndBypass() {
 
 int main() {
     std::cout << "==========================================================" << std::endl;
-    std::cout << " Echoes of November - Automated Unit Test Suite"            << std::endl;
+    std::cout << " Group 3 Final Project - Automated Unit Test Suite"            << std::endl;
     std::cout << "==========================================================" << std::endl;
 
     testMatrixAndTransformations();

@@ -1,9 +1,9 @@
 /**
  * CS0045 Computer Graphics and Visual Computing
- * "Echoes of November" - 2.5D Narrative Adventure Game (C++17 & OpenGL Compatibility Profile)
+ * "Group 3 Final Project" - 2.5D Narrative Adventure Game (C++17 & OpenGL Compatibility Profile)
  *
  * COMPLETE FINAL BUILD (Phases 0-8):
- * 1. Interactive 2.5D environments (Classroom Room 304, 3rd-Floor Hallway, Rainy Street / Sundown Mart)
+ * 1. Interactive 2.5D environments (Classroom Room 304, 3rd-Floor Hallway, Rainy P. Paredes Street)
  * 2. 2D animated pixel-art characters inside 3D spaces (Elijah, Maya, Sam)
  * 3. Player movement & 3D AABB sliding collision detection
  * 4. Interactive objects & NPCs with 3D floating indicators
@@ -98,7 +98,7 @@ void handleMenuAction(ui::MenuAction action) {
     }
 }
 
-constexpr const char* kWindowTitle = "Echoes of November - 2.5D Narrative Adventure (CS0045 OpenGL)";
+constexpr const char* kWindowTitle = "Group 3 Final Project - 2.5D Narrative Adventure (CS0045 OpenGL)";
 
 void ensureWindowVisibleAndFocused() {
     if (g_autoVerifyExit) {

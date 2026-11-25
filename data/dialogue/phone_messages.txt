@@ -1,4 +1,4 @@
-# Echoes of November - Smartphone Messaging Data
+# Group 3 Final Project - Smartphone Messaging Data
 THREAD|Sam (Band Club)|replied_phone_sam
 MSG|Sam|Yo Elijah! Are you and Maya bringing the acoustic guitar to the rooftop?
 MSG|Sam|Rain's starting soon, let me know if you're still in Room 304!

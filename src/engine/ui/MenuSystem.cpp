@@ -140,7 +140,7 @@ void MenuSystem::render2D(int screenWidth, int screenHeight) const {
         1.0f, false);
 
     std::string header = (m_screen == MenuScreen::MainMenu)
-        ? "ECHOES OF NOVEMBER"
+        ? "GROUP 3 FINAL PROJECT"
         : "GAME PAUSED";
 
     TextRenderer::drawStrokeTextCentered2D(

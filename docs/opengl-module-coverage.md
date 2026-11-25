@@ -1,6 +1,6 @@
 # OpenGL Coursework Requirements Traceability Matrix (Modules 1–8)
 
-This document cross-references every concept, function, constant, and code pattern from the eight CS0045 lecture PDFs (`Module 01.pdf` – `Module 08.pdf`) against our 2.5D narrative adventure game (**"Echoes of November"**) and its built-in **OpenGL Coursework Demonstration Mode**.
+This document cross-references every concept, function, constant, and code pattern from the eight CS0045 lecture PDFs (`Module 01.pdf` – `Module 08.pdf`) against our 2.5D narrative adventure game (**"Group 3 Final Project"**) and its built-in **OpenGL Coursework Demonstration Mode**.
 
 ---
 
@@ -54,7 +54,7 @@ During the Phase 0 audit of `Module 01.pdf` through `Module 08.pdf`, several imp
 | Subtopic | Required Concept | OpenGL / GLUT Functions & Constants | Source File & Function | Gameplay Feature | How to Demonstrate | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | M3.S1 | Raster Position & Bitmap Text | `glRasterPos2f` (called *after* `glColor*`), `glutBitmapString` (`<GL/freeglut_ext.h>`), `GLUT_BITMAP_HELVETICA_18`, `GLUT_BITMAP_HELVETICA_12`, `GLUT_BITMAP_TIMES_ROMAN_24`, `GLUT_BITMAP_9_BY_15`, `GLUT_BITMAP_8_BY_13` | `src/main.cpp` / `src/engine/ui/` | Dialogue text, speaker names, phone UI messages, HUD prompts, debug overlay | Talk to NPCs, open phone UI, or view HUD overlay | Verified (Phase 0) |
-| M3.S1 | Stroke Font Text | `GLUT_STROKE_ROMAN`, `GLUT_STROKE_MONO_ROMAN`, `glutStrokeString` / `glutStrokeCharacter` | `src/engine/ui/` & Demo Mode M3 | 3D world-space signage (classroom number plaque, store sign) & title header | Look at classroom door sign / convenience store sign; Demo Mode M3 | Verified (Phase 0) |
+| M3.S1 | Stroke Font Text | `GLUT_STROKE_ROMAN`, `GLUT_STROKE_MONO_ROMAN`, `glutStrokeString` / `glutStrokeCharacter` | `src/engine/ui/` & Demo Mode M3 | 3D world-space signage (classroom number plaque, FEU Tech signage) & title header | Look at classroom door sign / FEU Tech signage; Demo Mode M3 | Verified (Phase 0) |
 | M3.S2 | Window & Redisplay Control | `glutFullScreen`, `glutReshapeWindow`, `glutPostRedisplay` | `src/main.cpp` | `F11` Fullscreen toggle & continuous event-driven redraws | Press `F11` to toggle fullscreen | Verified (Phase 0) |
 | M3.S2 | Keyboard Callbacks | `glutKeyboardFunc`, `glutKeyboardUpFunc`, `glutSpecialFunc`, `glutSpecialUpFunc` | `src/main.cpp` / `src/engine/input/` | `WASD`/Arrow movement, `E` interact, `1-3` dialogue choices, `ESC` pause | Move player with `WASD`, interact with `E` | Verified (Phase 0) |
 | M3.S2 | Mouse Callbacks | `glutMouseFunc` (`GLUT_LEFT_BUTTON`, `GLUT_MIDDLE_BUTTON`, `GLUT_RIGHT_BUTTON`, `GLUT_DOWN`, `GLUT_UP`) | `src/main.cpp` / `src/engine/input/` | Clicking menu buttons, advancing dialogue, clicking phone UI | Click menu items or dialogue choices with mouse | Verified (Phase 0) |
@@ -83,7 +83,7 @@ During the Phase 0 audit of `Module 01.pdf` through `Module 08.pdf`, several imp
 | Subtopic | Required Concept | OpenGL / GLUT Functions & Constants | Source File & Function | Gameplay Feature | How to Demonstrate | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | M6.S1 | 4x4 Matrix Math & Homogeneous Coords | Custom $4 \times 4$ translation/scaling/rotation matrix multiplication on `(x, y, z, w)` with `glMapBuffer` | `src/engine/core/Math4x4.cpp` & `src/debug/OpenGLDemoMode.cpp` | CPU-side matrix transformation of dynamic VBO vertices (Slide 22 `translate()` implementation) | Demo Mode M6 (`[F2]` -> Key `6`, animated translating pyramid apex via 4x4 matrix + `glMapBuffer`) | Verified (Phase 1–8) |
-| M6.S2 | 3D Cube & Pyramid Primitives | 3D Cube (`GL_QUADS`, 24 verts) and 3D Pyramid (`GL_TRIANGLES`, 12 verts) | `src/engine/renderer/` & Demo Mode M6 | 3D desks, lockers, convenience store counters, street lamps | All 3D scenes & Demo Mode M6 | Verified (Phase 0) |
+| M6.S2 | 3D Cube & Pyramid Primitives | 3D Cube (`GL_QUADS`, 24 verts) and 3D Pyramid (`GL_TRIANGLES`, 12 verts) | `src/engine/renderer/` & Demo Mode M6 | 3D desks, lockers, food stall counters, street lamps | All 3D scenes & Demo Mode M6 | Verified (Phase 0) |
 | M6.S2 | Sub-Buffer Updates & `BUFFER_OFFSET` | `#define BUFFER_OFFSET(i) ((void*)(i))`, `glBufferSubData`, `glArrayElement(i)` | `src/engine/renderer/` & Demo Mode M6/M8 | Combined vertex + color + UV VBOs rendered via `glArrayElement` & `glDrawArrays` | Demo Mode M6 & M8 | Verified (Phase 0) |
 | M6.S2 | OpenGL Debug Output Callback | `glEnable(GL_DEBUG_OUTPUT)`, `glDebugMessageCallback(MessageCallback, 0)`, `GL_DEBUG_TYPE_ERROR` | `src/main.cpp` (`MessageCallback`) | Real-time OpenGL error interception and logging | Active throughout runtime; logs to console | Verified (Phase 0) |
 

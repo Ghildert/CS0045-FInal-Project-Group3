@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(EchoesOfNovember VERSION 1.0.0 LANGUAGES CXX)
+project(Group3FinalProject VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -83,7 +83,7 @@ target_link_libraries(UnitTests PRIVATE
 )
 
 enable_testing()
-add_test(NAME EchoesUnitTests COMMAND UnitTests)
+add_test(NAME Group3UnitTests COMMAND UnitTests)
 
 # Copy MSYS2 UCRT64 runtime DLLs + assets/data into build/ so NarrativeGame.exe can also be double-clicked in Explorer
 set(MSYS2_UCRT64_BIN "C:/msys64/ucrt64/bin")

@@ -22,7 +22,7 @@ namespace scenes {
 enum class LocationId {
     Classroom   = 0, // Room 304 (Late Afternoon)
     Hallway     = 1, // 3rd-Floor School Corridor
-    RainyStreet = 2  // 24/7 Sundown Mart & Bus Stop Exterior
+    RainyStreet = 2  // P. Paredes Street outside FEU Tech
 };
 
 class ClassroomScene {

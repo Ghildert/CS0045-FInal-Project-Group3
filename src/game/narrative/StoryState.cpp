@@ -86,7 +86,7 @@ bool StoryState::saveToFile(
         return false;
     }
 
-    out << "# Echoes of November Save File\n";
+    out << "# Group 3 Final Project Save File\n";
     out << "scene=" << currentSceneId << "\n";
     out << "player_x=" << playerX << "\n";
     out << "player_z=" << playerZ << "\n";

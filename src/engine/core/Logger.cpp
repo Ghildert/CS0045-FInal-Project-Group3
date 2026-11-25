@@ -42,7 +42,7 @@ void Logger::printContextInfo() {
     glGetIntegerv(GL_MAX_LIGHTS, &maxLights);
 
     std::cout << "==========================================================" << std::endl;
-    std::cout << " Echoes of November - 2.5D Narrative Adventure (CS0045)"   << std::endl;
+    std::cout << " Group 3 Final Project - 2.5D Narrative Adventure (CS0045)"   << std::endl;
     std::cout << "==========================================================" << std::endl;
     std::cout << "OpenGL Version : " << (version  ? reinterpret_cast<const char*>(version)  : "Unknown") << std::endl;
     std::cout << "OpenGL Vendor  : " << (vendor   ? reinterpret_cast<const char*>(vendor)   : "Unknown") << std::endl;
